@@ -1,0 +1,17 @@
+# Dependencias y build
+node_modules/
+dist/
+*.local
+
+# Fotos y videos REALES privados de la pareja (no subir a GitHub)
+img/
+
+# Capturas de pantalla sueltas usadas durante el desarrollo
+Captura de pantalla*.png
+*.tmp
+
+# Config local de herramientas / editor
+.claude/
+.vscode/
+.DS_Store
+Thumbs.db

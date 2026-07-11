@@ -1,0 +1,429 @@
+import * as THREE from 'three';
+import { meshFrom } from './meshUtils.js';
+import { makePalm, makePine, makeCloud, makeBush } from './props/nature.js';
+import { makeUmbrella, makeLounger, makeBeachBall, makeTable, makeGrill } from './props/beach.js';
+import { buildCabin } from './props/Cabin.js';
+import { buildDock } from './props/Dock.js';
+import { buildBridge } from './props/structures.js';
+
+// El mundo: orquesta las islas (terreno con altura, playa, nieve), el mar, cielo,
+// luces y la ubicación de todos los props (que viven en ./props/*). Mantiene la
+// lógica de terreno (groundHeightAt) y los datos del minimapa (getMapData).
+//
+// - groundHeightAt(x,z): altura de piso solido (incluye la montaña), o null si es mar.
+// - getColliders(): cajas (Box3) de cabaña, muelle y puentes.
+// - getMapData(): datos para el minimapa (contornos de islas, puentes, plataformas).
+
+const SEA_LEVEL = -1.4;
+const KILL_Y = -8;
+
+const ISLANDS = [
+  { cx: 0,   cz: 0,    base: 36, amp: 7, freq: 3, phase: 0.0 },
+  { cx: 100, cz: 0,    base: 28, amp: 6, freq: 4, phase: 1.3 },
+  { cx: 0,   cz: -100, base: 40, amp: 6, freq: 3, phase: 0.6,
+    mountain: { height: 20, radius: 22, levels: 4, turns: 3, pathWidth: 2.6, phase0: 0.4, snowFrom: 0.55 } },
+];
+
+function islandRadius(isl, a) {
+  return isl.base
+    + isl.amp * Math.sin(isl.freq * a + isl.phase)
+    + isl.amp * 0.45 * Math.sin(isl.freq * 2 * a + isl.phase * 1.7);
+}
+
+function smoother(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+
+// Muestrea la montaña en (x,z): devuelve altura, si esta sobre el camino, y nieve.
+// La montaña son TERRAZAS planas (escalones) conectadas por una RAMPA en espiral:
+// fuera del camino la altura "cae" al escalon de abajo (acantilado empinado), sobre
+// el camino sube en rampa suave. Asi solo se sube por el caminito.
+function mountainSample(isl, x, z) {
+  const m = isl.mountain;
+  const dx = x - isl.cx, dz = z - isl.cz;
+  const d = Math.hypot(dx, dz);
+  const ang = Math.atan2(dz, dx);
+  const rEff = m.radius * (1 + 0.08 * Math.sin(3 * ang + 0.7) + 0.04 * Math.sin(5 * ang));
+  if (d >= rEff) return { h: 0, onPath: false, snow: 0 };
+
+  const u = 1 - d / rEff;                                   // 0 base .. 1 cima
+  const rampH = u * m.height;
+  const terraceH = (Math.floor(u * m.levels) / m.levels) * m.height;
+
+  const spiral = m.turns * u * Math.PI * 2 + (m.phase0 || 0);
+  let diff = ang - spiral;
+  diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+  const pathAng = m.pathWidth / Math.max(d, 3);
+  const onp = 1 - THREE.MathUtils.clamp(Math.abs(diff) / pathAng, 0, 1);
+  const blend = smoother(onp);
+
+  const h = terraceH * (1 - blend) + rampH * blend;
+  const snow = THREE.MathUtils.clamp((h - m.height * m.snowFrom) / (m.height * 0.22), 0, 1);
+  return { h, onPath: onp > 0.4, snow };
+}
+
+function terrainHeight(isl, x, z) {
+  if (!isl.mountain) return 0;
+  return mountainSample(isl, x, z).h;
+}
+
+function bump(x, z) {
+  return (Math.sin(x * 0.5) * Math.cos(z * 0.4) + Math.sin(x * 0.17 + z * 0.23)) * 0.05;
+}
+
+export class World {
+  constructor(scene) {
+    this.scene = scene;
+    this.colliders = [];
+    this.clouds = [];
+    this._bridges = [];
+    this._platforms = [];
+    this._time = 0;
+
+    this._buildSky();
+    this._buildLights();
+    this._buildSea();
+    this._buildIslands();
+    this._buildBridges();
+    this._buildGrass();
+    this._buildFlowers();
+    this._buildRocks();
+    this._buildPalms();
+    this._buildPines();
+    this._buildClouds();
+    this._place(buildCabin());
+    this._place(buildDock());
+    this._buildResort();
+  }
+
+  get seaLevel() { return SEA_LEVEL; }
+  get killY() { return KILL_Y; }
+  getColliders() { return this.colliders; }
+
+  // Agrega un resultado de builder ({ group, colliders, bridge, platform(s) }) a la
+  // escena y registra sus colisiones/marcadores de minimapa.
+  _place(built) {
+    this.scene.add(built.group);
+    if (built.colliders) this.colliders.push(...built.colliders);
+    if (built.bridge) this._bridges.push(built.bridge);
+    if (built.platform) this._platforms.push(built.platform);
+    if (built.platforms) this._platforms.push(...built.platforms);
+  }
+
+  groundHeightAt(x, z) {
+    for (const isl of ISLANDS) {
+      const dx = x - isl.cx, dz = z - isl.cz;
+      const a = Math.atan2(dz, dx);
+      if (Math.hypot(dx, dz) <= islandRadius(isl, a)) return terrainHeight(isl, x, z);
+    }
+    return null;
+  }
+
+  getMapData() {
+    const islands = ISLANDS.map((isl) => {
+      const pts = [];
+      for (let i = 0; i < 56; i++) {
+        const a = (i / 56) * Math.PI * 2;
+        const r = islandRadius(isl, a);
+        pts.push([isl.cx + Math.cos(a) * r, isl.cz + Math.sin(a) * r]);
+      }
+      return { cx: isl.cx, cz: isl.cz, pts, mountain: !!isl.mountain };
+    });
+    return { islands, bridges: this._bridges, platforms: this._platforms };
+  }
+
+  update(dt) {
+    this._time += dt;
+    if (this.sea) this.sea.position.y = SEA_LEVEL + Math.sin(this._time * 0.6) * 0.08;
+    for (const c of this.clouds) {
+      c.position.x += dt * c.userData.speed;
+      if (c.position.x > 240) c.position.x = -240;
+    }
+  }
+
+  _buildSky() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 2; canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 0, 256);
+    g.addColorStop(0.0, '#2f83d8');
+    g.addColorStop(0.55, '#8ec4ea');
+    g.addColorStop(1.0, '#cdeaf3');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 2, 256);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    this.scene.background = tex;
+    this.scene.fog = new THREE.Fog(0xcdeaf3, 120, 500);
+  }
+
+  _buildLights() {
+    const hemi = new THREE.HemisphereLight(0xbfe6ff, 0xa9b57e, 0.85);
+    this.scene.add(hemi);
+
+    const sun = new THREE.DirectionalLight(0xfff4e0, 1.5);
+    sun.position.set(60, 100, 20);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    const s = 120;
+    Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 1, far: 320 });
+    sun.shadow.bias = -0.0004;
+    sun.target.position.set(30, 0, -40);
+    this.scene.add(sun);
+    this.scene.add(sun.target);
+  }
+
+  _buildSea() {
+    const geo = new THREE.PlaneGeometry(1400, 1400, 1, 1);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x2aa7c4, roughness: 0.2, metalness: 0.35, transparent: true, opacity: 0.9,
+    });
+    const sea = new THREE.Mesh(geo, mat);
+    sea.rotation.x = -Math.PI / 2;
+    sea.position.y = SEA_LEVEL;
+    sea.receiveShadow = true;
+    this.scene.add(sea);
+    this.sea = sea;
+  }
+
+  _buildIslands() {
+    for (const isl of ISLANDS) this.scene.add(buildIslandMesh(isl));
+  }
+
+  _buildBridges() {
+    // A(0,0) - B(100,0): a lo largo de X (mismo z=0).
+    this._place(buildBridge(
+      ISLANDS[0].cx + islandRadius(ISLANDS[0], 0) - 2, 0,
+      ISLANDS[1].cx - islandRadius(ISLANDS[1], Math.PI) + 2, 0,
+    ));
+    // A(0,0) - C(0,-100): a lo largo de Z (mismo x=0).
+    this._place(buildBridge(
+      0, ISLANDS[0].cz - (islandRadius(ISLANDS[0], -Math.PI / 2) - 2),
+      0, ISLANDS[2].cz + islandRadius(ISLANDS[2], Math.PI / 2) - 2,
+    ));
+  }
+
+  _buildGrass() {
+    const blade = new THREE.PlaneGeometry(0.05, 0.3, 1, 3);
+    const p = blade.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const t = (p.getY(i) + 0.15) / 0.3;
+      p.setX(i, p.getX(i) * (1 - t * 0.85));
+    }
+    blade.translate(0, 0.15, 0);
+    blade.computeVertexNormals();
+
+    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, side: THREE.DoubleSide });
+    const N = 4600;
+    const mesh = new THREE.InstancedMesh(blade, mat, N);
+    const dummy = new THREE.Object3D();
+    const cA = new THREE.Color(0x5f9e46), cB = new THREE.Color(0x84c25c), tmp = new THREE.Color();
+
+    let n = 0;
+    const tufts = Math.floor(N / 5);
+    for (let tf = 0; tf < tufts && n < N; tf++) {
+      const isl = ISLANDS[Math.floor(Math.random() * ISLANDS.length)];
+      const a = Math.random() * Math.PI * 2;
+      const rr = Math.sqrt(Math.random()) * (islandRadius(isl, a) - 3);
+      const bx = isl.cx + Math.cos(a) * rr;
+      const bz = isl.cz + Math.sin(a) * rr;
+      if (isl.mountain && terrainHeight(isl, bx, bz) > isl.mountain.height * isl.mountain.snowFrom) continue;
+      for (let k = 0; k < 5 && n < N; k++) {
+        const gx = bx + (Math.random() - 0.5) * 0.5;
+        const gz = bz + (Math.random() - 0.5) * 0.5;
+        dummy.position.set(gx, terrainHeight(isl, gx, gz), gz);
+        dummy.rotation.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4);
+        const sc = 0.7 + Math.random() * 0.8;
+        dummy.scale.set(sc, sc * (0.8 + Math.random() * 0.7), sc);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(n, dummy.matrix);
+        mesh.setColorAt(n, tmp.copy(cA).lerp(cB, Math.random()));
+        n++;
+      }
+    }
+    mesh.count = n;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    this.scene.add(mesh);
+  }
+
+  _buildFlowers() {
+    const petalColors = [0xff9ec2, 0xffe98a, 0xffffff, 0xc79bff];
+    for (let i = 0; i < 70; i++) {
+      const isl = ISLANDS[Math.floor(Math.random() * ISLANDS.length)];
+      const a = Math.random() * Math.PI * 2;
+      const rr = Math.sqrt(Math.random()) * (islandRadius(isl, a) - 4);
+      const x = isl.cx + Math.cos(a) * rr;
+      const z = isl.cz + Math.sin(a) * rr;
+      const h = terrainHeight(isl, x, z);
+      if (isl.mountain && h > isl.mountain.height * isl.mountain.snowFrom) continue;
+      const flower = new THREE.Group();
+      const petalMat = new THREE.MeshStandardMaterial({ color: petalColors[i % petalColors.length], roughness: 0.9 });
+      for (let k = 0; k < 5; k++) {
+        const petal = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 5), petalMat);
+        const pa = (k / 5) * Math.PI * 2;
+        petal.position.set(Math.cos(pa) * 0.05, 0.18, Math.sin(pa) * 0.05);
+        flower.add(petal);
+      }
+      const center = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5),
+        new THREE.MeshStandardMaterial({ color: 0xffd94a, roughness: 0.9 }));
+      center.position.y = 0.19;
+      flower.add(center);
+      flower.position.set(x, h, z);
+      this.scene.add(flower);
+    }
+  }
+
+  _buildRocks() {
+    const mats = [0x8a8f96, 0x7c8188, 0x9aa0a6].map((c) =>
+      new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+    for (const isl of ISLANDS) {
+      for (let i = 0; i < 12; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = islandRadius(isl, a) * (0.82 + Math.random() * 0.14);
+        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5 + Math.random() * 1.0), mats[i % 3]);
+        rock.position.set(isl.cx + Math.cos(a) * r, 0.0, isl.cz + Math.sin(a) * r);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.scale.y = 0.7;
+        rock.castShadow = true; rock.receiveShadow = true;
+        this.scene.add(rock);
+      }
+    }
+  }
+
+  _buildPalms() {
+    const spots = [
+      [0, 0.4, 0.6], [0, 1.4, 0.72], [0, 2.5, 0.5], [0, 3.5, 0.7], [0, 4.6, 0.6], [0, 5.6, 0.75],
+      [1, 0.8, 0.6], [1, 2.2, 0.7], [1, 3.9, 0.62], [1, 5.2, 0.66],
+    ];
+    for (const [i, a, rf] of spots) {
+      const isl = ISLANDS[i];
+      const r = islandRadius(isl, a) * rf;
+      const palm = makePalm();
+      palm.position.set(isl.cx + Math.cos(a) * r, 0, isl.cz + Math.sin(a) * r);
+      palm.rotation.y = Math.random() * Math.PI * 2;
+      this.scene.add(palm);
+    }
+  }
+
+  _buildPines() {
+    // Pinos nevados en las laderas de la montaña (isla 2).
+    const isl = ISLANDS[2];
+    for (let i = 0; i < 9; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = 6 + Math.random() * 12;
+      const x = isl.cx + Math.cos(a) * d;
+      const z = isl.cz + Math.sin(a) * d;
+      const pine = makePine();
+      pine.position.set(x, terrainHeight(isl, x, z) - 0.1, z);
+      this.scene.add(pine);
+    }
+  }
+
+  _buildClouds() {
+    for (let i = 0; i < 18; i++) {
+      const cloud = makeCloud();
+      cloud.position.set((Math.random() - 0.5) * 480, 48 + Math.random() * 45, (Math.random() - 0.5) * 480);
+      cloud.userData.speed = 1.5 + Math.random() * 2.5;
+      this.clouds.push(cloud);
+      this.scene.add(cloud);
+    }
+  }
+
+  // Zona de vacaciones frente a la cabaña: sombrilla, reposeras, pelota, mesa,
+  // parrilla, plantitas y palmeras. Todo decorativo (sin colisión).
+  _buildResort() {
+    const g = new THREE.Group();
+    g.add(makeUmbrella(-5.5, 4));
+    g.add(makeLounger(-6.6, 4, 0x2f7fd8));
+    g.add(makeLounger(-4.4, 4, 0xe0554e));
+    g.add(makeBeachBall(2, 10));
+    g.add(makeTable(6, -1));
+    g.add(makeGrill(8, -3.5));
+    g.add(makeUmbrella(6.5, 5));
+    for (const [x, z] of [[-10, -6], [10, -5], [-9, 2], [9, 2], [-6, -2.5], [6, -2.5], [11, 5]]) {
+      g.add(makeBush(x, z));
+    }
+    for (const [x, z] of [[-11, 6], [11, 7], [-11, -2], [12, -4], [4, 14], [-5, 13]]) {
+      const palm = makePalm();
+      palm.position.set(x, 0, z);
+      palm.rotation.y = Math.random() * Math.PI * 2;
+      g.add(palm);
+    }
+    this.scene.add(g);
+  }
+}
+
+// ---- Geometria de las islas (superficie con altura, nieve y caminito) ----
+
+function buildIslandMesh(isl) {
+  const group = new THREE.Group();
+  const ANG = 128;
+  const RINGS = isl.mountain ? 46 : 10;
+  const grassF = 0.86;
+  const skirtF = 0.9;
+  const skirtY = -6;
+
+  const green = new THREE.Color(0x74b350);
+  const dirt = new THREE.Color(0x9c7a4a);
+  const snow = new THREE.Color(0xf4f7fb);
+
+  const vertAt = (tR, ang) => {
+    const rEdge = islandRadius(isl, ang) * grassF;
+    const r = tR * rEdge;
+    const x = isl.cx + Math.cos(ang) * r;
+    const z = isl.cz + Math.sin(ang) * r;
+    let h, col;
+    if (isl.mountain) {
+      const s = mountainSample(isl, x, z);
+      h = s.h;
+      if (s.onPath && s.snow < 0.5) {
+        col = dirt.clone();
+      } else if (s.snow > 0) {
+        col = green.clone().lerp(snow, s.snow);
+      } else {
+        col = green.clone().multiplyScalar(0.9 + Math.random() * 0.14);
+      }
+    } else {
+      h = 0;
+      const v = 0.82 + (Math.sin(x * 1.3) * Math.cos(z * 1.1) * 0.5 + 0.5) * 0.32;
+      col = green.clone().multiplyScalar(v);
+    }
+    const y = h + 0.02 + bump(x, z) * (h > 0.5 ? 0.2 : 1);
+    return { x, y, z, col };
+  };
+
+  const top = [], topCol = [];
+  const pushV = (v) => { top.push(v.x, v.y, v.z); topCol.push(v.col.r, v.col.g, v.col.b); };
+
+  for (let j = 0; j < ANG; j++) {
+    const a1 = (j / ANG) * Math.PI * 2;
+    const a2 = ((j + 1) / ANG) * Math.PI * 2;
+    for (let i = 0; i < RINGS; i++) {
+      const t1 = i / RINGS, t2 = (i + 1) / RINGS;
+      const v00 = vertAt(t1, a1), v01 = vertAt(t1, a2);
+      const v10 = vertAt(t2, a1), v11 = vertAt(t2, a2);
+      pushV(v00); pushV(v10); pushV(v11);
+      pushV(v00); pushV(v11); pushV(v01);
+    }
+  }
+
+  // Playa y costa (anillos exteriores, a nivel del agua).
+  const sand = [], skirt = [];
+  const P = (r, ang) => [isl.cx + Math.cos(ang) * r, isl.cz + Math.sin(ang) * r];
+  for (let j = 0; j < ANG; j++) {
+    const a1 = (j / ANG) * Math.PI * 2;
+    const a2 = ((j + 1) / ANG) * Math.PI * 2;
+    const r1 = islandRadius(isl, a1), r2 = islandRadius(isl, a2);
+    const [ix1, iz1] = P(r1 * grassF, a1), [ix2, iz2] = P(r2 * grassF, a2);
+    const [ox1, oz1] = P(r1, a1), [ox2, oz2] = P(r2, a2);
+    const [bx1, bz1] = P(r1 * skirtF, a1), [bx2, bz2] = P(r2 * skirtF, a2);
+    sand.push(ix1, 0.02, iz1, ox1, -0.08, oz1, ox2, -0.08, oz2);
+    sand.push(ix1, 0.02, iz1, ox2, -0.08, oz2, ix2, 0.02, iz2);
+    skirt.push(ox1, -0.08, oz1, bx1, skirtY, bz1, bx2, skirtY, bz2);
+    skirt.push(ox1, -0.08, oz1, bx2, skirtY, bz2, ox2, -0.08, oz2);
+  }
+
+  group.add(meshFrom(top, 0xffffff, { colors: topCol }));
+  group.add(meshFrom(sand, 0xe8d59a, { flat: true }));
+  group.add(meshFrom(skirt, 0xcbb784, { flat: true }));
+  group.children.forEach((m) => { m.receiveShadow = true; });
+  return group;
+}
