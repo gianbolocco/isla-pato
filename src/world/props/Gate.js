@@ -42,24 +42,39 @@ export function buildGate(x, z) {
   bars.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   group.add(bars);
 
-  // Muros de roca a ambos lados (cierran el paso hasta el agua; altos para no saltarlos).
-  const wallLen = 20, wallH = 7, wallT = 3.2;
+  // Muros de PIEDRA (mampostería) a ambos lados: bloques apilados en hiladas con TRABA
+  // (running bond), retranqueados hacia arriba (talud) y con remate de musgo. Cierran el
+  // paso hasta el agua y son altos para no saltarlos. Empiezan pasado el pilar (no tapan
+  // el hueco). El collider es una caja limpia por muro.
+  const wallLen = 20, wallH = 7, wallT = 2.4;
+  const moss = new THREE.MeshStandardMaterial({ color: 0x6cab52, roughness: 1, flatShading: true });
+  const courses = 6, courseH = wallH / courses;
   const wallColliders = [];
   for (const s of [-1, 1]) {
-    const z0 = z + s * (W / 2);
-    for (let i = 0; i < 6; i++) {
-      // Rocas corridas HACIA AFUERA del hueco (empiezan pasado el pilar) y más chicas,
-      // para no taparlo. Grosor en X moderado para que no invadan el paso.
-      const rz = z0 + s * (3.5 + i * (wallLen / 6));
-      const rk = new THREE.Mesh(new THREE.DodecahedronGeometry(1.4 + Math.random() * 1.1), rockMats[i % 3]);
-      rk.position.set(x + (Math.random() - 0.5) * 1.0, 1.0 + Math.random() * 1.4, rz);
-      rk.rotation.set(Math.random(), Math.random(), Math.random());
-      rk.scale.y = 1.5 + Math.random() * 0.6;
-      rk.castShadow = true; rk.receiveShadow = true;
-      group.add(rk);
+    const zStart = z + s * (W / 2 + 0.3);           // arranca pasado el pilar
+    for (let c = 0; c < courses; c++) {
+      const yy = courseH * (c + 0.5);
+      const t = wallT * (1 - c * 0.05);             // se afina hacia arriba (talud)
+      let zz = 0.3 + (c % 2) * 0.9;                  // traba: hiladas impares corridas
+      while (zz < wallLen) {
+        const bw = 1.1 + Math.random() * 0.9;       // ancho del bloque (en Z)
+        if (zz + bw > wallLen) break;
+        const blk = new THREE.Mesh(
+          new THREE.BoxGeometry(t, courseH * 0.95, bw * 0.93), rockMats[(c + Math.floor(zz)) % 3]);
+        blk.position.set(x + (Math.random() - 0.5) * 0.12, yy, zStart + s * (zz + bw / 2));
+        blk.rotation.set((Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.05);
+        blk.castShadow = true; blk.receiveShadow = true;
+        group.add(blk);
+        zz += bw + 0.06;
+      }
     }
+    // Coronación con musgo arriba del muro.
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(wallT * 0.7, 0.24, wallLen - 0.6), moss);
+    cap.position.set(x, wallH + 0.04, zStart + s * (wallLen / 2));
+    cap.receiveShadow = true; group.add(cap);
+
     wallColliders.push(new THREE.Box3().setFromCenterAndSize(
-      new THREE.Vector3(x, wallH / 2, z0 + s * (wallLen / 2)),
+      new THREE.Vector3(x, wallH / 2, zStart + s * (wallLen / 2)),
       new THREE.Vector3(wallT, wallH, wallLen)));
   }
 

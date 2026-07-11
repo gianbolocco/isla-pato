@@ -2,6 +2,66 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-11 — Cabo Roca grande (Juancho escondido) + islas más separadas + muralla de piedra
+- **Cabo Roca mucho más grande** (`base 26→38`) para que **cueste encontrar a Juancho**: se
+  lo movió a un **rincón norte alejado del camino** (`QUIZ.parrotPos = (130, 46)`), con más
+  árboles (18→32) y rocas (22→38) de cobertura (se mantiene un claro de radio 6 en el loro).
+  (Se evaluó ponerlo en la cima del faro con escalera, pero trepar necesita una mecánica de
+  escalada nueva que hoy no existe; queda como feature futura.)
+- **Islas más separadas / puente largo:** la **Cala del Pescador** se corrió al este
+  (`cx 190→240`) y la **Isla 4** con ella (`300→350`), así el puente Cabo Roca→Cala pasa de
+  ~22 a ~59 de largo. Los props del campamento de la Cala se hicieron **relativos al centro
+  de la isla** (se mueven con ella); `DAD.pos` y los umbrales/checkpoints de `Story`/`World`
+  se reajustaron. El parkour Cala→Isla 4 conserva su largo (~56).
+- **Muralla de la reja rehecha** (`props/Gate.js`): en vez de rocas sueltas flotando, ahora es
+  **mampostería de piedra** — bloques apilados en hiladas con traba (running bond), retranqueo
+  hacia arriba (talud), variación de color/rotación y **coronación de musgo**. Collider limpio
+  por muro (sigue sin poder pasarse por el costado ni saltarse).
+
+## 2026-07-11 — Islas en zigzag (no en línea recta) + loro sobre poste + caña rehecha
+- **Islas fuera de la línea recta:** el archipiélago ahora zigzaguea en Z (Cabo Roca a
+  `cz=22`, Isla 4 a `cz=-18`; Isla Pato y la Cala quedan en `cz=0` porque ahí están el
+  spawn/muelle/props). El eje X sigue siendo el sentido del viaje.
+- **Puentes diagonales de verdad** (`props/structures.js`): `buildBridge`/`buildBrokenBridge`
+  se generalizaron a cualquier dirección del plano XZ — tablones/postes/soga se orientan a
+  la dirección real (`rotation.y = -ang`, soga con quaternion) y la colisión pasó a ser una
+  **cadena de cajas cortas** (`deckColliders`) que sigue la diagonal (antes era una sola AABB
+  del largo entero). El hueco del puente roto ahora es `gapColliders` (array).
+- **Parkour** (isla Cala → Isla 4): las plataformas **derivan en Z** hacia la Isla 4 (de z≈0
+  a z≈-15). Checkpoint de Cabo Roca movido a `z=20` (la isla se corrió).
+- **Loro Juancho ya no flota:** la rama va sobre un **poste de madera** con cap y escuadra de
+  refuerzo, enterrado un poco para que el idle-bob no lo despegue del piso (`objects/Parrot.js`).
+- **Caña de Alejandro rehecha** (`entities/AlejandroModel.js`): grupo anclado en la mano
+  derecha apuntando sobre el agua — mango de corcho + tapón, caña ahusada, carrete con manija,
+  anillas guía y **tanza hasta una boya roja/blanca** en el agua (antes flotaba al costado).
+
+## 2026-07-11 — Ajustes: loro despejado, rocas con colisión, parkour largo sin checkpoints
+- **Juancho despejado:** se quitó el árbol que lo tapaba; queda en su propia rama en un
+  claro (World mantiene árboles/rocas lejos de `QUIZ.parrotPos`, radio 7).
+- **Rocas con colisión:** nuevo `world/props/rocks.js` (`buildRock` con collider). Todas
+  las rocas del mapa (orilla, Cabo Roca, Isla Pato) ahora son sólidas (no se atraviesan).
+- **Cala del Pescador:** se le agregaron árboles (despejando el campamento).
+- **Parkour más largo y difícil:** 13 piezas en zigzag con alturas variables (isla 4 movida
+  a x=300 para más recorrido) y **sin checkpoints intermedios**: si te caés, volvés a la
+  Cala del Pescador y lo rehacés entero.
+
+## 2026-07-11 — Isla 3 "Cala del Pescador": Alejandro (papá) + parkour a la isla 4
+- **Refactor a componentes reutilizables (menos duplicación):**
+  - **`game/InteractionManager.js`**: cercanía + tecla E + cartelito centralizados para
+    TODOS los NPC (loro, reja, Alejandro). `CaboRoca` se refactorizó para usarlo.
+  - **`game/conversation.js`** (`playLines`): diálogos scripted reutilizables.
+  - **`game/Checkpoints.js`**: banderines que setean el respawn (`Player.checkpoint`);
+    si te caés en el parkour, volvés al último checkpoint, no al principio.
+  - Piezas de parkour en **`world/props/parkour.js`** (barril, naufragio); plataformas
+    de roca/madera reutilizadas de `structures.js`. Props de pesca en **`props/fishing.js`**.
+- **Alejandro** (`entities/AlejandroModel.js`): papá chibi según la foto (canoso, barba
+  gris, chaleco azul sobre buzo gris, con caña). Diálogo (le dice "pitu", Lulu le destrozó
+  el puente) + anzuelo de la suerte. Config en `DAD`.
+- **Isla 3 "Cala del Pescador"** (ISLANDS[2]): muelle + campamento (silla, balde, caja,
+  botella, mesa, juncos). **Isla 4** (ISLANDS[3]) nueva (a diseñar, Nemo).
+- **Parkour** isla 3 → 4 (dificultad media): puente destruido + rocas/barriles/naufragio/
+  plataformas sobre el agua, con 4 checkpoints. Pasos nuevos en `Story`.
+
 ## 2026-07-11 — Ajustes: loro visible + reja ancha con muros + sin flecha al loro
 - **Loro visible:** Juancho se saca de adentro de la copa; queda en una rama al costado
   del árbol (hacia donde llega Belu), visible. El objetivo ya no lo señala ("Explorá Cabo

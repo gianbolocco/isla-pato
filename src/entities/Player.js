@@ -21,6 +21,7 @@ export class Player {
 
     this.grounded = false;
     this.facing = 0;                 // yaw del modelo (radianes)
+    this.checkpoint = null;          // último checkpoint (respawn); si null, usa PLAYER.spawn
 
     // Temporizadores de salto
     this.timeSinceGrounded = 999;
@@ -208,7 +209,8 @@ export class Player {
   }
 
   respawn() {
-    this.position.set(PLAYER.spawn.x, PLAYER.spawn.y, PLAYER.spawn.z);
+    if (this.checkpoint) this.position.copy(this.checkpoint);
+    else this.position.set(PLAYER.spawn.x, PLAYER.spawn.y, PLAYER.spawn.z);
     this.velocity.set(0, 0, 0);
   }
 }

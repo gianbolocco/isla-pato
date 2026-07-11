@@ -41,11 +41,14 @@ No estamos atados a las 3 islas actuales: se reskinnean y se agregan escenarios.
 
 | # | Isla / Escenario | Misión | Estado |
 |---|---|---|---|
-| 1 | 🌴 **Isla Pato** | Intro (botella) + **juntar tablones escondidos** para reparar el puente | ✅ en construcción |
-| 2 | 🪨 **Cabo Roca** (rocosa, árboles, **faro**) | (misión del faro / próxima) | 🏗️ isla creada, misión pendiente |
-| 3 | 🐾 **Isla del Recuerdo** | Aparece **Nemo** (sorpresa emotiva); se suma de compañero | pendiente |
-| 4 | 🏘️ **La Cala Pirata** | Colarse en el pueblo pirata | pendiente |
-| 5 | ⚓ **El Pato Mareado (final)** | Abordar, trepar el aparejo, liberar a Gian | 🏗️ barco creado (landmark lejano) |
+| 1 | 🌴 **Isla Pato** | Intro (botella) + juntar **tablones** para reparar el puente | ✅ |
+| 2 | 🪨 **Cabo Roca** (rocosa, árboles, faro) | **Loro Juancho**: quiz sobre Gian → clave → **reja con teclado** | ✅ |
+| 3 | 🎣 **Cala del Pescador** | **Alejandro** (papá): diálogo + **parkour** sobre el agua (Lulu destrozó el puente) | ✅ |
+| 4 | 🐾 **Isla 4** (a diseñar) | Aparece **Nemo** (sorpresa emotiva) + el **bote** al barco pirata | 🏗️ isla creada |
+| — | ⚓ **El Pato Mareado (final)** | Abordar, liberar a Gian | 🏗️ barco (landmark lejano) |
+
+Personajes/NPC: **Juancho** (loro), **Alejandro** ("pitu", papá pescador), **Capitán Lulu**
+(por modelar). Sistemas reutilizables: diálogo, interacción (E), teclado, checkpoints, parkour.
 
 El **barco pirata "El Pato Mareado"** ya está en el horizonte como meta lejana. Se llega
 cruzando las islas; cada una da un ítem/misión para pasar a la siguiente (nivel 1: tablones).

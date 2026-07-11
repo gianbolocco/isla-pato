@@ -58,6 +58,7 @@ export class Game {
     this._ui = {
       open: () => { this.uiActive = true; if (document.pointerLockElement) document.exitPointerLock(); },
       close: () => { this.uiActive = false; this.input.requestLock(); },
+      active: () => this.uiActive,
     };
 
     // --- Historia (checkpoints): botella + mensaje + tablones + loro Juancho + reja ---

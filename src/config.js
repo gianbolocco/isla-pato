@@ -54,7 +54,7 @@ export const PLANK_PICKUP_RADIUS = 2.2;
 export const QUIZ = {
   parrotName: 'Juancho',
   code: '1234',                 // 🔢 CLAVE (número). Cambiala por una con significado.
-  parrotPos: { x: 128, z: -14 }, // rincón sur-este de Cabo Roca (fuera del camino directo)
+  parrotPos: { x: 130, z: 46 }, // rincón NORTE escondido de Cabo Roca (isla grande, cz=22)
   talkRadius: 3.2,
   gateRadius: 4.5,
   questions: [
@@ -73,6 +73,21 @@ export const QUIZ = {
       options: ['Pato', 'Jefe', 'Vecino'],
       correct: 0,
     },
+  ],
+};
+
+// Nivel 3 (Isla de pesca): Alejandro, el papá de Belu. Le dice "pitu". El Capitán Lulu
+// le destrozó el puente → hay que cruzar por parkour. Editá las líneas a gusto.
+export const DAD = {
+  name: 'Alejandro',
+  pos: { x: 234, z: 12 },   // Cala del Pescador (isla corrida al este, cx=240)
+  talkRadius: 3.6,
+  lines: [
+    '¿Qué hacés, pitu? 🎣 Estaba acá tranquilo pescando…',
+    '…cuando apareció el <b>Capitán Lulu</b>. El muy pirata sabe que andás buscando a Gian.',
+    'Y para complicarte, ¡me <b>destrozó el puente</b> a la otra isla! 😤',
+    'Vas a tener que cruzar <b>saltando por las rocas y los restos del naufragio</b>. ¡Con cuidado, pitu!',
+    'Tomá, llevate mi <b>anzuelo de la suerte</b> 🎣. ¡Traémelo a Gian! Te amo, hija 💛',
   ],
 };
 

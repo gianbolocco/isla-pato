@@ -15,7 +15,17 @@ export function makeParrot() {
   const face = mat(0xf3ece0), dark = mat(0x1a1410, { roughness: 0.3 }), white = mat(0xf8f8f8);
   const bark = mat(0x6e4b2a, { flatShading: true }), claw = mat(0x3a352e);
 
-  // Rama (perca) + ramita.
+  // Poste de madera que sostiene la rama (así Juancho no queda flotando): baja hasta
+  // el piso —la rama queda a ~1.9 sobre el suelo— con un cap arriba y una escuadra de
+  // refuerzo. Se entierra un poco para que el bob del loro no lo despegue del suelo.
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 2.2, 9), bark);
+  post.position.set(0.05, -1.05, -0.02); post.castShadow = true; g.add(post);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.11, 0.13, 9), bark);
+  cap.position.set(0.05, 0.03, -0.02); g.add(cap);
+  const brace = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.72, 7), bark);
+  brace.position.set(0.34, -0.32, 0); brace.rotation.z = 0.8; brace.castShadow = true; g.add(brace);
+
+  // Rama (perca) sobre el poste + ramita.
   const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 1.7, 7), bark);
   branch.rotation.z = Math.PI / 2; branch.rotation.y = 0.12; branch.castShadow = true;
   g.add(branch);

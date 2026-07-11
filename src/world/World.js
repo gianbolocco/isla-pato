@@ -2,12 +2,16 @@ import * as THREE from 'three';
 import { meshFrom } from './meshUtils.js';
 import { makePalm, makeCloud, makeBush, makeTree } from './props/nature.js';
 import { makeUmbrella, makeLounger, makeBeachBall, makeTable, makeGrill } from './props/beach.js';
+import { makeChair, makeBucket, makeTackleBox, makeBottle as makeDrinkBottle, makeReeds } from './props/fishing.js';
+import { buildBarrel, buildWreck } from './props/parkour.js';
+import { buildRock } from './props/rocks.js';
 import { buildCabin } from './props/Cabin.js';
 import { buildDock } from './props/Dock.js';
-import { buildBrokenBridge, buildBridge } from './props/structures.js';
+import { buildBrokenBridge, buildBridge, buildWoodPlatform, buildRockPlatform } from './props/structures.js';
 import { buildGate } from './props/Gate.js';
 import { makePirateShip } from '../objects/PirateShip.js';
 import { makeLighthouse } from '../objects/Lighthouse.js';
+import { QUIZ } from '../config.js';   // parrotPos: zona a despejar de árboles
 
 // El mundo: orquesta las islas (terreno con altura, playa, nieve), el mar, cielo,
 // luces y la ubicación de todos los props (que viven en ./props/*). Mantiene la
@@ -22,10 +26,15 @@ const KILL_Y = -8;
 
 // name: se muestra en el minimapa. rocky: estética rocosa (isla 2). Las islas que
 // todavía no diseñamos quedan sin nombre (el minimapa las marca con "?").
+// Las islas NO están en línea recta: zigzaguean en Z (el eje X sigue creciendo, que es
+// el sentido del viaje) para que el archipiélago se vea natural y los puentes/parkour
+// crucen en diagonal. Isla Pato queda en cz=0 (ahí está el spawn/cabaña/muelle).
 const ISLANDS = [
   { name: 'Isla Pato', cx: 0, cz: 0, base: 36, amp: 7, freq: 3, phase: 0.0 },
-  { name: 'Cabo Roca', cx: 118, cz: 0, base: 26, amp: 6, freq: 4, phase: 1.3, rocky: true },
-  { cx: 190, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },   // isla 3 (última) — a diseñar
+  // Cabo Roca es GRANDE a propósito (Juancho está escondido y cuesta encontrarlo).
+  { name: 'Cabo Roca', cx: 118, cz: 22, base: 38, amp: 6, freq: 4, phase: 1.3, rocky: true },
+  { name: 'Cala del Pescador', cx: 240, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },  // lejos de Cabo Roca (puente largo)
+  { cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0 },   // isla 4 — a diseñar (Nemo)
 ];
 
 function islandRadius(isl, a) {
@@ -122,7 +131,86 @@ export class World {
     this._buildResort();
     this._buildRockyIsland();   // isla 2: árboles, rocas y faro
     this._scatterHome();        // vegetación/rocas extra en Isla Pato (esconden tablones)
+    this._buildFishingIsland(); // isla 3: muelle + campamento de pesca de Alejandro
+    this._buildParkour();       // isla 3 -> isla 4: puente destruido + parkour sobre el agua
     this._buildPirateShip();
+  }
+
+  // Isla 3 (Cala del Pescador): muelle + campamento de pesca. Alejandro (NPC) lo pone
+  // el manager de juego (game/FishingIsland). Acá van los props y los juncos.
+  _buildFishingIsland() {
+    const isl = ISLANDS[2];
+    this._place(buildDock(isl.cx, isl.cz + 16, isl.cz + 40, 3.0));   // muelle hacia el mar (+Z)
+
+    // Props del campamento, relativos al centro de la isla (cx, cz) para que se muevan
+    // junto con ella. El campamento está al lado de Alejandro (DAD.pos ≈ isl.cx-6, +12).
+    const cx = isl.cx, cz = isl.cz;
+    const g = new THREE.Group();
+    g.add(makeChair(cx - 4, cz + 12, 0x2f6b8f));   // silla al lado de Alejandro
+    g.add(makeBucket(cx - 8, cz + 10));
+    g.add(makeTackleBox(cx - 2, cz + 15));
+    g.add(makeDrinkBottle(cx, cz + 14, 0x3a7d4a));
+    g.add(makeTable(cx + 5, cz + 9));
+    for (let i = 0; i < 10; i++) {                 // juncos por la orilla norte
+      const a = Math.PI / 2 + (Math.random() - 0.5) * 1.7;
+      const r = islandRadius(isl, a) * (0.8 + Math.random() * 0.12);
+      g.add(makeReeds(cx + Math.cos(a) * r, cz + Math.sin(a) * r));
+    }
+    this.scene.add(g);
+
+    // Árboles por la isla (despejando el campamento).
+    for (let i = 0; i < 12; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const rr = (0.2 + Math.random() * 0.55) * islandRadius(isl, a);
+      const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
+      if (Math.hypot(x - (cx - 2), z - (cz + 12)) < 9) continue;
+      const tree = makeTree();
+      tree.position.set(x, terrainHeight(isl, x, z), z);
+      tree.scale.setScalar(0.95 + Math.random() * 0.5);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      this.scene.add(tree);
+    }
+  }
+
+  // Isla 3 -> Isla 4: el puente lo destruyó Lulu → se cruza por PARKOUR (largo, dificultad
+  // media) sobre el agua: rocas, barriles, plataformas y un naufragio. SIN checkpoints en
+  // el medio: si te caés, volvés a la Cala del Pescador y lo rehacés entero.
+  _buildParkour() {
+    const a = ISLANDS[2];
+    const x0 = a.cx + islandRadius(a, 0);          // orilla este de la isla de pesca
+
+    // Muñón del puente destruido (postes rotos en la orilla).
+    const dark = new THREE.MeshStandardMaterial({ color: 0x82531f, roughness: 1 });
+    for (const [dx, dz, tilt] of [[0.5, 1.4, 0.3], [1.4, -1.2, -0.4], [2.6, 0.6, 0.5]]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 1.7, 8), dark);
+      post.position.set(x0 + dx, 0.3, dz); post.rotation.z = tilt; post.castShadow = true;
+      this.scene.add(post);
+    }
+
+    // Circuito zigzag, alturas variables, que además DERIVA en Z hacia la Isla 4 (que
+    // está en cz=-18): arranca en la orilla (z≈0) y va bajando en Z. [tipo, dx, y, z, r?]
+    const pieces = [
+      ['rock', 3, 1.0, 0, 1.7], ['barrel', 7, 1.6, -1], ['barrel', 11, 1.2, 1],
+      ['wood', 15, 2.2, -3], ['rock', 19, 2.8, -1, 1.6], ['barrel', 23, 2.0, -5],
+      ['wreck', 28, 2.6, -3], ['wood', 33, 3.0, -7], ['rock', 37, 2.2, -5, 1.6],
+      ['barrel', 41, 1.6, -10], ['wood', 45, 2.2, -8], ['barrel', 49, 1.4, -13],
+      ['rock', 52, 1.0, -15, 1.8],
+    ];
+    for (const [type, dx, y, z, r] of pieces) {
+      const x = x0 + dx;
+      if (type === 'rock') this._place(buildRockPlatform(x, y, z, r));
+      else if (type === 'barrel') this._place(buildBarrel(x, y, z));
+      else if (type === 'wood') this._place(buildWoodPlatform(x, y, z, 2.2, 2.2, SEA_LEVEL));
+      else if (type === 'wreck') this._place(buildWreck(x, y, z));
+    }
+
+    // Checkpoints SOLO en tierra (llegadas). El último, en la Cala junto al parkour:
+    // si te caés en el parkour, respawneás acá y lo hacés de nuevo entero.
+    this.checkpoints = [
+      { x: 84, y: 1.2, z: 22 },     // llegada a Cabo Roca (isla grande, en z=22)
+      { x: 224, y: 1.2, z: 0 },     // llegada a la Cala del Pescador (corrida al este)
+      { x: x0 - 4, y: 1.2, z: 0 },  // borde de la Cala, junto al parkour
+    ];
   }
 
   // "El Pato Mareado" lejos en el mar (dirección +Z desde el muelle): la meta.
@@ -242,10 +330,12 @@ export class World {
   }
 
   _buildBridges() {
-    // Puente ROTO de Isla Pato -> Cabo Roca (eje X). Se repara juntando tablones.
+    const [A, B, C] = ISLANDS;   // Isla Pato, Cabo Roca, Cala del Pescador
+    // Puente ROTO de Isla Pato -> Cabo Roca (diagonal, las islas no están alineadas).
+    // Se repara juntando tablones.
     const b = buildBrokenBridge(
-      ISLANDS[0].cx + islandRadius(ISLANDS[0], 0) - 2, 0,
-      ISLANDS[1].cx - islandRadius(ISLANDS[1], Math.PI) + 2, 0,
+      A.cx + islandRadius(A, 0) - 2, A.cz,
+      B.cx - islandRadius(B, Math.PI) + 2, B.cz,
     );
     this._brokenBridge = b;
     this.scene.add(b.group);
@@ -253,11 +343,12 @@ export class World {
     this.colliders.push(...b.colliders); // tramos intactos sólidos (no se atraviesa)
     // El hueco del medio recién obtiene colisión al reparar (ver repairBridge()).
 
-    // Puente Cabo Roca -> isla 3 (normal, caminable). La REJA lo bloquea hasta abrirla.
-    const gx1 = ISLANDS[1].cx + islandRadius(ISLANDS[1], 0) - 2;
-    const gx2 = ISLANDS[2].cx - islandRadius(ISLANDS[2], Math.PI) + 2;
-    this._place(buildBridge(gx1, 0, gx2, 0));
-    this._gate = buildGate(gx1 - 0.5, 0);
+    // Puente Cabo Roca -> Cala del Pescador (diagonal, caminable). La REJA lo bloquea
+    // hasta abrirla; se pone en el borde de Cabo Roca (arranque del puente).
+    const gx1 = B.cx + islandRadius(B, 0) - 2;
+    const gx2 = C.cx - islandRadius(C, Math.PI) + 2;
+    this._place(buildBridge(gx1, B.cz, gx2, C.cz));
+    this._gate = buildGate(gx1 - 0.5, B.cz);
     this.scene.add(this._gate.group);
     this.colliders.push(this._gate.gateCollider, ...this._gate.wallColliders);
   }
@@ -277,7 +368,7 @@ export class World {
   repairBridge() {
     if (!this._brokenBridge || this._brokenBridge._repaired) return;
     this._brokenBridge.repair();
-    this.colliders.push(this._brokenBridge.gapCollider);
+    this.colliders.push(...this._brokenBridge.gapColliders);
     this._brokenBridge._repaired = true;
   }
 
@@ -361,14 +452,10 @@ export class World {
         const a = Math.random() * Math.PI * 2;
         // En la isla del inicio, dejar libre el corredor del muelle (hacia +Z ≈ π/2).
         if (isHome && Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.5) continue;
-        const r = islandRadius(isl, a) * (0.82 + Math.random() * 0.14);
-        const x = isl.cx + Math.cos(a) * r, z = isl.cz + Math.sin(a) * r;
-        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5 + Math.random() * 1.0), mats[i % 3]);
-        rock.position.set(x, terrainHeight(isl, x, z), z);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.scale.y = 0.7;
-        rock.castShadow = true; rock.receiveShadow = true;
-        this.scene.add(rock);
+        const rr = islandRadius(isl, a) * (0.82 + Math.random() * 0.14);
+        const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
+        const size = 0.5 + Math.random() * 1.0;
+        this._place(buildRock(x, terrainHeight(isl, x, z), z, size, mats[i % 3], 0.7));
       }
     }
   }
@@ -395,29 +482,31 @@ export class World {
     lh.position.set(isl.cx, terrainHeight(isl, isl.cx, isl.cz), isl.cz);
     this.scene.add(lh);
 
-    for (let i = 0; i < 18; i++) {
+    // Zona despejada alrededor del loro Juancho (que no lo tapen los árboles/rocas),
+    // pero SÍ mucha vegetación alrededor para que cueste encontrarlo en la isla grande.
+    const clearOfParrot = (x, z) => Math.hypot(x - QUIZ.parrotPos.x, z - QUIZ.parrotPos.z) > 6;
+
+    for (let i = 0; i < 32; i++) {
       const a = Math.random() * Math.PI * 2;
-      const rr = (0.18 + Math.random() * 0.6) * islandRadius(isl, a);
+      const rr = (0.18 + Math.random() * 0.7) * islandRadius(isl, a);
       const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
+      if (!clearOfParrot(x, z)) continue;
       const tree = makeTree();
       tree.position.set(x, terrainHeight(isl, x, z), z);
-      tree.scale.setScalar(0.95 + Math.random() * 0.55);   // árboles grandes y variados
+      tree.scale.setScalar(0.95 + Math.random() * 0.55);
       tree.rotation.y = Math.random() * Math.PI * 2;
       this.scene.add(tree);
     }
 
     const rockMats = [0x8a8f96, 0x7c8188, 0x6f757b].map((c) =>
       new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 38; i++) {
       const a = Math.random() * Math.PI * 2;
       const rr = (0.1 + Math.random() * 0.75) * islandRadius(isl, a);
       const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
-      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6 + Math.random() * 1.6), rockMats[i % 3]);
-      rock.position.set(x, terrainHeight(isl, x, z) + 0.1, z);
-      rock.rotation.set(Math.random(), Math.random(), Math.random());
-      rock.scale.y = 0.8 + Math.random() * 0.5;
-      rock.castShadow = true; rock.receiveShadow = true;
-      this.scene.add(rock);
+      if (!clearOfParrot(x, z)) continue;
+      const size = 0.6 + Math.random() * 1.6;
+      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, size, rockMats[i % 3], 0.8 + Math.random() * 0.4));
     }
   }
 
@@ -432,16 +521,12 @@ export class World {
     }
     const rockMats = [0x8a8f96, 0x7c8188, 0x9aa0a6].map((c) =>
       new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
-    // Grupitos de rocas cerca de donde están escondidos los tablones.
+    // Grupitos de rocas (con colisión) cerca de donde están escondidos los tablones.
     const spots = [[3, -13], [-17, 7], [15, 8], [-11, 14], [19, -8], [-8, -14], [12, -3]];
     for (const [x, z] of spots) {
       for (let k = 0; k < 3; k++) {
-        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5 + Math.random() * 0.9), rockMats[k % 3]);
-        rock.position.set(x + (Math.random() - 0.5) * 2.4, 0.1, z + (Math.random() - 0.5) * 2.4);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.scale.y = 0.7;
-        rock.castShadow = true; rock.receiveShadow = true;
-        g.add(rock);
+        const size = 0.5 + Math.random() * 0.9;
+        this._place(buildRock(x + (Math.random() - 0.5) * 2.4, 0.1, z + (Math.random() - 0.5) * 2.4, size, rockMats[k % 3], 0.7));
       }
     }
     for (const [x, z] of [[-20, -8], [20, 4], [-14, -15], [16, 14]]) {
