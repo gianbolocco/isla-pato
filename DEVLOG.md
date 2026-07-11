@@ -2,6 +2,15 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-10 — Nombres de isla + minimapa con nombres + playas realistas
+- **Nombres de isla:** campo `name` en `ISLANDS` (World). Isla del comienzo = **"Isla Pato"**.
+  `getMapData` lo expone; el **minimapa** dibuja el nombre centrado en cada isla (o "?"
+  si todavía no la diseñamos). Convención para nombrar cada isla del viaje.
+- **Playas realistas:** el borde de las islas se rehizo con bandas concéntricas de arena
+  con **vertex-colors** (seca clara → húmeda oscura → sumergida), **línea de espuma**
+  translúcida en la orilla y falda submarina como base. Arena más ancha (`grassF` 0.86→0.80).
+  `meshFrom` ahora acepta `transparent/opacity`.
+
 ## 2026-07-10 — Refactor: props a módulos reutilizables + ventanas/interior + minimapa
 - **Ventanas** de la cabaña: 4 (2 frente + 2 laterales) con marco y cruceta; interior
   con **texturas procedurales** (madera/rayas/corazón), cuadrito, plantita, baúl con tapa.

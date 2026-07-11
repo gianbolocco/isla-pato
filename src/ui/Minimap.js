@@ -72,6 +72,20 @@ export class Minimap {
       }
     }
 
+    // Nombres de las islas (o "?" si todavía no la diseñamos).
+    ctx.font = 'bold 9px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const isl of this.data.islands) {
+      const [lx, ly] = this._xy(isl.cx, isl.cz);
+      const label = isl.name || '?';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.strokeText(label, lx, ly);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, lx, ly);
+    }
+
     // Puentes.
     ctx.strokeStyle = '#a9793f';
     ctx.lineWidth = 3;

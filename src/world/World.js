@@ -17,8 +17,10 @@ import { buildBridge } from './props/structures.js';
 const SEA_LEVEL = -1.4;
 const KILL_Y = -8;
 
+// name: se muestra en el minimapa. Las islas del viaje que todavía no diseñamos
+// quedan sin nombre (el minimapa las marca con "?").
 const ISLANDS = [
-  { cx: 0,   cz: 0,    base: 36, amp: 7, freq: 3, phase: 0.0 },
+  { name: 'Isla Pato', cx: 0, cz: 0, base: 36, amp: 7, freq: 3, phase: 0.0 },
   { cx: 100, cz: 0,    base: 28, amp: 6, freq: 4, phase: 1.3 },
   { cx: 0,   cz: -100, base: 40, amp: 6, freq: 3, phase: 0.6,
     mountain: { height: 20, radius: 22, levels: 4, turns: 3, pathWidth: 2.6, phase0: 0.4, snowFrom: 0.55 } },
@@ -60,9 +62,34 @@ function mountainSample(isl, x, z) {
   return { h, onPath: onp > 0.4, snow };
 }
 
+// Perfil de la playa (compartido por la malla visual y la colisión, para que
+// coincidan): [factor del radio, altura y]. El color va aparte en BEACH_COLORS.
+const GRASS_F = 0.80;                 // hasta acá el pasto; de acá al borde, la playa
+const BEACH = [
+  [GRASS_F, 0.0],
+  [0.92, -0.04],
+  [1.00, -0.15],
+  [1.05, -0.9],
+  [1.12, -1.9],
+];
+const BEACH_COLORS = [0xe9dcb0, 0xdfce98, 0xd0b880, 0xb89f6f, 0x8f7a52];
+const BEACH_WALK = 1.08;              // hay piso hasta acá (la orilla); más allá, mar
+
+// Altura de la playa según el factor de radio f (0 en el interior, baja hacia el agua).
+function beachDrop(f) {
+  if (f <= BEACH[0][0]) return 0;
+  for (let i = 0; i < BEACH.length - 1; i++) {
+    const [f0, y0] = BEACH[i], [f1, y1] = BEACH[i + 1];
+    if (f <= f1) return y0 + (y1 - y0) * ((f - f0) / (f1 - f0));
+  }
+  return BEACH[BEACH.length - 1][1];
+}
+
 function terrainHeight(isl, x, z) {
-  if (!isl.mountain) return 0;
-  return mountainSample(isl, x, z).h;
+  const dx = x - isl.cx, dz = z - isl.cz;
+  const f = Math.hypot(dx, dz) / islandRadius(isl, Math.atan2(dz, dx));
+  const base = isl.mountain ? mountainSample(isl, x, z).h : 0;
+  return base + beachDrop(f);          // interior = base; borde = base + pendiente de playa
 }
 
 function bump(x, z) {
@@ -112,7 +139,9 @@ export class World {
     for (const isl of ISLANDS) {
       const dx = x - isl.cx, dz = z - isl.cz;
       const a = Math.atan2(dz, dx);
-      if (Math.hypot(dx, dz) <= islandRadius(isl, a)) return terrainHeight(isl, x, z);
+      // Hay piso hasta la orilla (radio * BEACH_WALK), así se puede caminar por la
+      // arena que baja al agua sin caerse. Más allá es mar (null).
+      if (Math.hypot(dx, dz) <= islandRadius(isl, a) * BEACH_WALK) return terrainHeight(isl, x, z);
     }
     return null;
   }
@@ -125,7 +154,7 @@ export class World {
         const r = islandRadius(isl, a);
         pts.push([isl.cx + Math.cos(a) * r, isl.cz + Math.sin(a) * r]);
       }
-      return { cx: isl.cx, cz: isl.cz, pts, mountain: !!isl.mountain };
+      return { cx: isl.cx, cz: isl.cz, pts, mountain: !!isl.mountain, name: isl.name || null };
     });
     return { islands, bridges: this._bridges, platforms: this._platforms };
   }
@@ -275,11 +304,15 @@ export class World {
     const mats = [0x8a8f96, 0x7c8188, 0x9aa0a6].map((c) =>
       new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
     for (const isl of ISLANDS) {
+      const isHome = isl === ISLANDS[0];
       for (let i = 0; i < 12; i++) {
         const a = Math.random() * Math.PI * 2;
+        // En la isla del inicio, dejar libre el corredor del muelle (hacia +Z ≈ π/2).
+        if (isHome && Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.5) continue;
         const r = islandRadius(isl, a) * (0.82 + Math.random() * 0.14);
+        const x = isl.cx + Math.cos(a) * r, z = isl.cz + Math.sin(a) * r;
         const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5 + Math.random() * 1.0), mats[i % 3]);
-        rock.position.set(isl.cx + Math.cos(a) * r, 0.0, isl.cz + Math.sin(a) * r);
+        rock.position.set(x, terrainHeight(isl, x, z), z);
         rock.rotation.set(Math.random(), Math.random(), Math.random());
         rock.scale.y = 0.7;
         rock.castShadow = true; rock.receiveShadow = true;
@@ -357,8 +390,7 @@ function buildIslandMesh(isl) {
   const group = new THREE.Group();
   const ANG = 128;
   const RINGS = isl.mountain ? 46 : 10;
-  const grassF = 0.86;
-  const skirtF = 0.9;
+  const grassF = GRASS_F;   // hasta acá el pasto; de acá al borde, la playa
   const skirtY = -6;
 
   const green = new THREE.Color(0x74b350);
@@ -405,25 +437,50 @@ function buildIslandMesh(isl) {
     }
   }
 
-  // Playa y costa (anillos exteriores, a nivel del agua).
-  const sand = [], skirt = [];
+  // ---- Playa realista ----
+  // Bandas concéntricas de arena que bajan al agua con vertex-colors (seca clara ->
+  // húmeda oscura -> sumergida), una línea de espuma en la orilla, y una falda
+  // submarina como base sólida. Los factores son múltiplos del radio de la isla.
+  // Anillos de la playa: [factor de R, altura y, color] — mismo perfil que la
+  // colisión (BEACH) para que la arena visible y el piso coincidan.
+  const rings = BEACH.map(([f, y], i) => [f, y, new THREE.Color(BEACH_COLORS[i])]);
+
+  const beach = [], beachCol = [], foam = [], skirt = [];
   const P = (r, ang) => [isl.cx + Math.cos(ang) * r, isl.cz + Math.sin(ang) * r];
   for (let j = 0; j < ANG; j++) {
     const a1 = (j / ANG) * Math.PI * 2;
     const a2 = ((j + 1) / ANG) * Math.PI * 2;
     const r1 = islandRadius(isl, a1), r2 = islandRadius(isl, a2);
-    const [ix1, iz1] = P(r1 * grassF, a1), [ix2, iz2] = P(r2 * grassF, a2);
-    const [ox1, oz1] = P(r1, a1), [ox2, oz2] = P(r2, a2);
-    const [bx1, bz1] = P(r1 * skirtF, a1), [bx2, bz2] = P(r2 * skirtF, a2);
-    sand.push(ix1, 0.02, iz1, ox1, -0.08, oz1, ox2, -0.08, oz2);
-    sand.push(ix1, 0.02, iz1, ox2, -0.08, oz2, ix2, 0.02, iz2);
-    skirt.push(ox1, -0.08, oz1, bx1, skirtY, bz1, bx2, skirtY, bz2);
-    skirt.push(ox1, -0.08, oz1, bx2, skirtY, bz2, ox2, -0.08, oz2);
+
+    // Bandas de arena (dos triángulos por anillo, con color por vértice).
+    for (let k = 0; k < rings.length - 1; k++) {
+      const [f0, y0, c0] = rings[k];
+      const [f1, y1, c1] = rings[k + 1];
+      const [ax, az] = P(r1 * f0, a1), [aax, aaz] = P(r2 * f0, a2);
+      const [bx, bz] = P(r1 * f1, a1), [bbx, bbz] = P(r2 * f1, a2);
+      beach.push(ax, y0, az, bx, y1, bz, bbx, y1, bbz);
+      beachCol.push(c0.r, c0.g, c0.b, c1.r, c1.g, c1.b, c1.r, c1.g, c1.b);
+      beach.push(ax, y0, az, bbx, y1, bbz, aax, y0, aaz);
+      beachCol.push(c0.r, c0.g, c0.b, c1.r, c1.g, c1.b, c0.r, c0.g, c0.b);
+    }
+
+    // Línea de espuma que cruza el nivel del agua (~y=-1.4).
+    const [fa0x, fa0z] = P(r1 * 1.06, a1), [fa1x, fa1z] = P(r2 * 1.06, a2);
+    const [fb0x, fb0z] = P(r1 * 1.10, a1), [fb1x, fb1z] = P(r2 * 1.10, a2);
+    foam.push(fa0x, -1.0, fa0z, fb0x, -1.57, fb0z, fb1x, -1.57, fb1z);
+    foam.push(fa0x, -1.0, fa0z, fb1x, -1.57, fb1z, fa1x, -1.0, fa1z);
+
+    // Falda submarina (base sólida hacia el fondo).
+    const [s0x, s0z] = P(r1 * 1.12, a1), [s1x, s1z] = P(r2 * 1.12, a2);
+    const [d0x, d0z] = P(r1 * 1.02, a1), [d1x, d1z] = P(r2 * 1.02, a2);
+    skirt.push(s0x, -1.9, s0z, d0x, skirtY, d0z, d1x, skirtY, d1z);
+    skirt.push(s0x, -1.9, s0z, d1x, skirtY, d1z, s1x, -1.9, s1z);
   }
 
   group.add(meshFrom(top, 0xffffff, { colors: topCol }));
-  group.add(meshFrom(sand, 0xe8d59a, { flat: true }));
-  group.add(meshFrom(skirt, 0xcbb784, { flat: true }));
+  group.add(meshFrom(beach, 0xffffff, { colors: beachCol }));
+  group.add(meshFrom(skirt, 0x8a744e, { flat: true }));
+  group.add(meshFrom(foam, 0xeef6f2, { flat: true, transparent: true, opacity: 0.55 }));
   group.children.forEach((m) => { m.receiveShadow = true; });
   return group;
 }
