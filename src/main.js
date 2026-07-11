@@ -19,9 +19,10 @@ const minimap = new Minimap(game.world.getMapData());
 // Al hacer click en el overlay, capturamos el puntero para mirar con el mouse.
 overlay.addEventListener('click', () => game.input.requestLock());
 
-// Mostrar/ocultar el overlay segun el estado del pointer-lock.
+// Mostrar/ocultar el overlay segun el pointer-lock. No lo mostramos si hay una UI
+// abierta (dialogo/teclado): ahi el mouse esta suelto a proposito.
 game.input.onLockChange = (locked) => {
-  overlay.classList.toggle('hidden', locked);
+  overlay.classList.toggle('hidden', locked || game.uiActive);
 };
 
 // HUD simple con la altura alcanzada (util para probar el parkour).

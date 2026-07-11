@@ -38,6 +38,44 @@ export const RENDER = {
   toonSteps: 4,            // escalones de luz del toon (menos = más "plano")
 };
 
+// Nivel 1: tablones escondidos en Isla Pato para reparar el puente a la 2ª isla.
+// Posiciones (x,z) repartidas y escondidas entre rocas/vegetación.
+export const PLANKS = [
+  { x: 3, z: -14 },    // detrás de la cabaña
+  { x: -18, z: 8 },    // orilla oeste, entre rocas
+  { x: 15, z: 7 },     // este, entre palmeras
+  { x: -11, z: 13 },   // hacia la playa
+  { x: 19, z: -9 },    // este, entre arbustos
+];
+export const PLANK_PICKUP_RADIUS = 2.2;
+
+// Nivel 2 (Cabo Roca): el loro Juancho sabe la clave de la reja. Hace 3 preguntas
+// sobre Gian antes de darla. PLACEHOLDERS obvios — editá q/options/correct y `code`.
+export const QUIZ = {
+  parrotName: 'Juancho',
+  code: '1234',                 // 🔢 CLAVE (número). Cambiala por una con significado.
+  parrotPos: { x: 128, z: -14 }, // rincón sur-este de Cabo Roca (fuera del camino directo)
+  talkRadius: 3.2,
+  gateRadius: 4.5,
+  questions: [
+    {
+      q: '¿Cómo se llama el "pato" que Belu quiere rescatar?',
+      options: ['Gianlucca', 'Un pingüino', 'El Capitán Lulu'],
+      correct: 0,
+    },
+    {
+      q: '¿Quién se llevó a Gian en el barco pirata?',
+      options: ['El Capitán Lulu', 'Un delfín', 'Nemo el perro'],
+      correct: 0,
+    },
+    {
+      q: '¿Cómo se dicen de cariño Belu y Gian?',
+      options: ['Pato', 'Jefe', 'Vecino'],
+      correct: 0,
+    },
+  ],
+};
+
 // Props decorativos (.glb gratis, ej. Poly Pizza / Kenney / Quaternius) que se
 // apoyan sobre el suelo. Archivos en public/models/props/. Se llenan a medida que
 // bajemos assets. Ejemplo:
@@ -67,13 +105,14 @@ export const PLAYER = {
 export const INTRO = {
   bottle: { x: 0, z: 40, y: 0.1 },  // sobre el muelle (a ras), cerca de la punta
   readRadius: 3.4,                // a esta distancia aparece el mensaje
-  title: 'Una botella con un mensaje 🍾',
+  title: 'Querido pato…',
   message:
-    '¡Pato! 🦆 Perdón... me quise hacer el niño explorador, salí a caminar solo ' +
-    'y me perdí. El Capitán Lulu y sus secuaces me agarraron y me tienen en su ' +
-    'barco, <b>"El Pato Mareado"</b>.<br><br>' +
-    'Dicen que si me querés de vuelta, vas a tener que cruzar todas las islas y ' +
-    'venir a rescatarme. ¡Te espero, patito! Te amo.<br><br>— Gian',
+    'Necesito ayudaaaaa! Me quise hacer el niño explorador y sali a recorrer la hermosa isla pato, me perdí... y el <b>Capitán Lulu</b> ' +
+    'me secuestró. Estoy en su barco pirataa.<br><br>' +
+    'Para rescatarme vas a tener que <b>avanzar por todas las islas</b>. En la ' +
+    '<b>última isla</b> hay un barco para navegar hasta el barco pirata y rescatarme.<br><br>' +
+    'Hay puente destruido, que te lleva a la proxima isla, tienes que buscar la manera de repararlo y avanzar<br><br>' +
+    '¡Vení a salvar a tu pato! Te amo. — Gian',
 };
 
 // Avatar 3D con rig (Ready Player Me). Si `enabled` está en true y el .glb existe,

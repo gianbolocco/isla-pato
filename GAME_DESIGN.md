@@ -1,4 +1,4 @@
-# GAME DESIGN — "Belu al Rescate" 🏴‍☠️🦆
+# GAME DESIGN — "Vacaciones en Isla Pato" 🏝️🏴‍☠️🦆
 
 Biblia del juego. Historia, personajes, mundo, objetos y mecánicas.
 Tono: **aventura divertida, con chistes internos**. Tierno pero jugueton.
@@ -39,14 +39,16 @@ jaula agitando la mano. → Arranca la misión.
 ## Mundo (actos = islas, cada una una misión)
 No estamos atados a las 3 islas actuales: se reskinnean y se agregan escenarios.
 
-| # | Isla / Escenario | Misión | Gag |
+| # | Isla / Escenario | Misión | Estado |
 |---|---|---|---|
-| 1 | 🌴 **Playa de Isla Pato** | Tutorial → cutscene del secuestro | Gian se pierde por "explorador" |
-| 2 | 🚢 **El Naufragio** | Parkour sobre un barco encallado → 1 pieza del mapa | Pirata dormido roncando |
-| 3 | 🕳️ **La Gruta del Mar** | Cueva con plataformas + tesoro → pieza / llave | Nemo cava y encuentra oro (y un hueso) |
-| 4 | 🌋 **El Volcán/Faro** (reusar montaña) | Escalar a la cima y avistar el barco con catalejo | Nemo con pañuelo pirata |
-| 5 | 🏘️ **La Cala Pirata** | Colarse en el pueblo pirata esquivando guardias | Cartel "Se busca" con la cara de Gian |
-| 6 | ⚓ **El Pato Mareado (final)** | Abordar, trepar el aparejo, abrir la jaula, liberar a Gian | Reencuentro + Nemo héroe |
+| 1 | 🌴 **Isla Pato** | Intro (botella) + **juntar tablones escondidos** para reparar el puente | ✅ en construcción |
+| 2 | 🪨 **Cabo Roca** (rocosa, árboles, **faro**) | (misión del faro / próxima) | 🏗️ isla creada, misión pendiente |
+| 3 | 🐾 **Isla del Recuerdo** | Aparece **Nemo** (sorpresa emotiva); se suma de compañero | pendiente |
+| 4 | 🏘️ **La Cala Pirata** | Colarse en el pueblo pirata | pendiente |
+| 5 | ⚓ **El Pato Mareado (final)** | Abordar, trepar el aparejo, liberar a Gian | 🏗️ barco creado (landmark lejano) |
+
+El **barco pirata "El Pato Mareado"** ya está en el horizonte como meta lejana. Se llega
+cruzando las islas; cada una da un ítem/misión para pasar a la siguiente (nivel 1: tablones).
 
 ## Objetos
 - **Piezas del mapa del tesoro** — objetivo principal (juntarlas abre la guarida).

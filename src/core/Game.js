@@ -3,14 +3,13 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { CAMERA, RENDER, PROPS, INTRO } from '../config.js';
+import { CAMERA, RENDER, PROPS } from '../config.js';
 import { Input } from './Input.js';
 import { World } from '../world/World.js';
 import { Player } from '../entities/Player.js';
 import { makeToonGradient, toonify } from './toon.js';
 import { loadProps } from '../world/Props.js';
-import { MessageBox } from '../ui/MessageBox.js';
-import { makeBottle } from '../objects/Bottle.js';
+import { Story } from '../game/Story.js';
 
 // Orquesta escena, renderer, camara en 3ra persona, input y el loop principal.
 export class Game {
@@ -49,20 +48,25 @@ export class Game {
       toonify(this.player.mesh, grad);
     }
 
-    // --- Intro: la botella con el mensaje de Gian ---
-    this.messageBox = new MessageBox(container);
-    this.bottle = makeBottle();
-    this.bottle.position.set(INTRO.bottle.x, INTRO.bottle.y, INTRO.bottle.z);
-    this.scene.add(this.bottle);
+    // --- Input (antes de la historia, que lo usa para interactuar con la tecla E) ---
+    this.input = new Input(this.renderer.domElement);
+    this.prevJump = false;
+
+    // Coordinador de UI/pointer-lock: al abrir un diálogo/teclado se suelta el mouse
+    // (para poder clickear) y al cerrarlo se vuelve a capturar. `uiActive` congela a Belu.
+    this.uiActive = false;
+    this._ui = {
+      open: () => { this.uiActive = true; if (document.pointerLockElement) document.exitPointerLock(); },
+      close: () => { this.uiActive = false; this.input.requestLock(); },
+    };
+
+    // --- Historia (checkpoints): botella + mensaje + tablones + loro Juancho + reja ---
+    this.story = new Story(this.scene, this.world, this.player, container, this._ui, this.input);
 
     // Props decorativos (.glb gratis) apoyados en el suelo.
     loadProps(this.scene, this.world, PROPS);
 
     this._setupPostFX();
-
-    // --- Input ---
-    this.input = new Input(this.renderer.domElement);
-    this.prevJump = false;
 
     // --- Reloj ---
     this.clock = new THREE.Clock();
@@ -99,27 +103,16 @@ export class Game {
     // dt acotado para evitar saltos gigantes si la pestaña estuvo en segundo plano.
     const dt = Math.min(this.clock.getDelta(), 0.05);
 
-    this._updateCameraLook();
-    this._updatePlayer(dt);
+    // Con una UI abierta (diálogo/teclado), Belu queda congelada y el mouse libre.
+    if (!this.uiActive) {
+      this._updateCameraLook();
+      this._updatePlayer(dt);
+    }
     this._updateCameraFollow();
     this.world.update(dt);
-    this._updateIntro(dt);
+    this.story.update(dt);
 
     this.composer.render();
-  }
-
-  _updateIntro(dt) {
-    // La botella se mece y gira suave (sobre el muelle).
-    this._t = (this._t || 0) + dt;
-    this.bottle.rotation.y += dt * 0.6;
-    this.bottle.position.y = INTRO.bottle.y + Math.sin(this._t * 1.6) * 0.05;
-
-    // Muestra/oculta el mensaje según la cercanía de Belu a la botella.
-    const dx = this.player.position.x - this.bottle.position.x;
-    const dz = this.player.position.z - this.bottle.position.z;
-    const near = Math.hypot(dx, dz) < INTRO.readRadius;
-    if (near) this.messageBox.show(INTRO.title, INTRO.message);
-    else this.messageBox.hide();
   }
 
   _updateCameraLook() {

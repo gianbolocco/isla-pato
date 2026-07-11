@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Botella de vidrio con un pergamino adentro y un brillito (glint) que llama la
 // atención (resalta con el bloom). Devuelve un THREE.Group con el origen en la base.
-// El mecido/rotación lo maneja quien la use (ver Game._updateIntro).
+// El mecido/rotación lo maneja quien la use (ver game/Story.js).
 export function makeBottle() {
   const g = new THREE.Group();
   const glass = new THREE.MeshStandardMaterial({

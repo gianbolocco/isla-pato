@@ -124,15 +124,50 @@ export function makeBush(x, z) {
   return g;
 }
 
+// Árbol grande y frondoso para la isla rocosa. Tronco con corteza + un par de ramas,
+// y copa de varios volúmenes facetados (flatShading) con verdes variados. Origen en
+// la base. Mide ~4.5 unidades (escalar en el mundo para variar).
+export function makeTree() {
+  const g = new THREE.Group();
+  const bark = new THREE.MeshStandardMaterial({ color: 0x6e4b2a, roughness: 1, flatShading: true });
+
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.38, 2.7, 8), bark);
+  trunk.position.y = 1.35; trunk.castShadow = true;
+  g.add(trunk);
+  // Un par de ramas que salen hacia la copa.
+  for (const s of [-1, 1]) {
+    const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.14, 1.2, 6), bark);
+    branch.position.set(s * 0.32, 2.05, 0);
+    branch.rotation.z = s * 0.9;
+    branch.castShadow = true;
+    g.add(branch);
+  }
+
+  const greens = [0x2f6b30, 0x3c8a3a, 0x4fa544, 0x357a34].map((c) =>
+    new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+  const blobs = [
+    [0, 3.1, 0, 1.55], [1.05, 2.75, 0.3, 1.05], [-0.95, 2.85, -0.3, 1.1],
+    [0.35, 3.75, -0.2, 1.15], [-0.35, 3.45, 0.55, 1.0], [0.25, 2.6, 0.85, 0.9],
+  ];
+  for (let i = 0; i < blobs.length; i++) {
+    const [x, y, z, r] = blobs[i];
+    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), greens[i % greens.length]);
+    b.position.set(x, y, z); b.castShadow = true;
+    g.add(b);
+  }
+  return g;
+}
+
 export function makeCloud() {
   const cloud = new THREE.Group();
-  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.92, fog: true });
-  const puffs = 4 + Math.floor(Math.random() * 3);
+  // Blanco apagado (por debajo del umbral del bloom, así no "prende") y semitransparente.
+  const mat = new THREE.MeshBasicMaterial({ color: 0xc4d0dc, transparent: true, opacity: 0.82, fog: true });
+  const puffs = 5 + Math.floor(Math.random() * 4);
   for (let i = 0; i < puffs; i++) {
-    const r = 3 + Math.random() * 3;
+    const r = 5 + Math.random() * 5;                 // más grandes
     const puff = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), mat);
-    puff.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 6);
-    puff.scale.y = 0.6;
+    puff.position.set((Math.random() - 0.5) * 18, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 10);
+    puff.scale.y = 0.55;
     cloud.add(puff);
   }
   return cloud;

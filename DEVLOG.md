@@ -2,6 +2,84 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-11 — Ajustes: loro visible + reja ancha con muros + sin flecha al loro
+- **Loro visible:** Juancho se saca de adentro de la copa; queda en una rama al costado
+  del árbol (hacia donde llega Belu), visible. El objetivo ya no lo señala ("Explorá Cabo
+  Roca…") → hay que encontrarlo solo.
+- **Reja más ancha y alta** + **muros de roca** con colisión a ambos lados (`Gate.js`
+  devuelve `gateCollider` + `wallColliders`): no se pasa por el costado ni saltando
+  (collider del hueco alto hasta el dintel; muros de 7 de alto hasta el agua).
+
+## 2026-07-11 — Ajustes nivel 2: loro guacamayo en rama + interacción con E + árboles
+- **Juancho más realista** (`objects/Parrot.js`): guacamayo (cuerpo rojo, alas azules con
+  banda amarilla, cola larga, parche de cara claro, pico ganchudo) posado en una **rama**.
+- **Posado en un árbol, más escondido:** `CaboRoca` coloca un árbol y pone al loro arriba
+  en la copa (elevado ~2.6). El trigger usa el punto del suelo (`talkRadius`).
+- **Interacción con la tecla E** (loro y reja): aparece un **prompt** ("Apretá E…",
+  `ui/Prompt.js`) y se abre el diálogo/teclado al presionar E (antes era automático).
+  `Story`/`Game` pasan el `input` a `CaboRoca`.
+- **Árboles más grandes y frondosos** (`nature.makeTree`): tronco con corteza + ramas,
+  copa facetada (icosaedros) con verdes variados; más y más grandes en Cabo Roca.
+
+## 2026-07-11 — Nivel 2: loro Juancho + quiz + reja con teclado + isla 3
+- **Sistema de diálogo reutilizable** (`ui/Dialogue.js`) — globo con opciones clickeables,
+  para todos los NPC. **Teclado numérico** (`ui/Keypad.js`) para la clave de la reja.
+- **Loro Juancho** (`objects/Parrot.js`) chibi colorido en una roca de Cabo Roca.
+- **Misión Cabo Roca** (`game/CaboRoca.js`): al acercarte, Juancho hace **3 preguntas
+  sobre Gian** (opción múltiple, sin castigo, reintentás) y da la **clave**. En la **reja**
+  se abre el teclado; con la clave correcta, la reja **sube** y se abre el paso.
+- **Coordinador de pointer-lock** (`Game._ui`): al abrir diálogo/teclado se suelta el mouse
+  (para clickear) y Belu queda **congelada**; al cerrar se recaptura. `main.js` no muestra
+  el overlay con UI abierta.
+- **Reja** (`world/props/Gate.js`): portcullis de piedra con collider que bloquea; `open()`
+  sube los barrotes y `World.openGate()` saca la colisión.
+- **Isla 3** (última, a diseñar) + **puente Cabo Roca→isla 3** (bloqueado por la reja).
+  Minimapa la marca con "?". Pasos nuevos en `Story` (checkpoints hasta cruzar a isla 3).
+- **Quiz configurable** (`config.QUIZ`): placeholders obvios + `code` — el usuario los edita.
+- **Nubes** más grandes y menos brillosas (color apagado, no dispara el bloom).
+
+## 2026-07-11 — Nombre "Vacaciones en Isla Pato" + puente roto con colisión
+- **El juego se llama "Vacaciones en Isla Pato"** (index.html título + pantalla de inicio,
+  package.json, CLAUDE.md/GAME_DESIGN).
+- **Puente roto con colisión:** los dos tramos intactos ahora son sólidos (no se atraviesa
+  ni se cae por las tablas visibles); el hueco del medio recién obtiene colisión al reparar
+  (`structures.buildBrokenBridge` devuelve `colliders` + `gapCollider`; `World.repairBridge`).
+
+## 2026-07-11 — Máquina de historia (checkpoints) + nota de papel + puente más largo
+- **`game/Story.js`** (nuevo): máquina de estados de la historia con checkpoints, base
+  extensible para todo el juego. Nivel 1: **leer la botella → llegar al puente roto (ahí
+  recién aparecen los tablones) → juntarlos → puente reparado → cruzar**. Cada paso tiene
+  `objective` (HUD) + `update()` que devuelve done; los objetivos gatean la progresión.
+- **Gating correcto:** la misión de tablones NO se activa hasta ver la botella y después
+  llegar al puente (`PlankField.spawn()` recién en ese checkpoint). El estado persiste al
+  respawnear (no se pierde el progreso).
+- **`ui/ObjectiveHud.js`** (objetivo arriba-centro) + **`game/PlankField.js`** (tablones sin
+  HUD propio). Se reemplazó `PlankQuest.js`. `Game.js` sólo crea `Story` y la actualiza.
+- **Mensaje de la botella = nota de PAPEL** (`ui/MessageBox.js`): renglones, sello de cera
+  🦆, leve inclinación, tipografía tipo carta. Texto nuevo: avanzar por las islas + barco
+  en la última isla. **Botella más grande** (scale 1.6).
+- **Puente más largo:** Cabo Roca movida a x=118 (las islas estaban muy juntas).
+
+## 2026-07-10 — Nivel 1 (tablones) + isla 2 rocosa (Cabo Roca) + montaña eliminada
+- **Isla de la montaña eliminada** (ISLANDS[2]) junto con su puente y los pinos.
+- **Nivel 1 — reparar el puente:** tablones escondidos por Isla Pato (`config.PLANKS`,
+  `objects/Plank.js`). **`game/PlankQuest.js`** los instancia, anima, los junta por
+  cercanía y muestra un **HUD** de progreso; al completarlos llama `world.repairBridge()`.
+- **Puente ROTO reparable** (`structures.buildBrokenBridge`): le falta el tramo del medio
+  y **no tiene colisión** hasta repararlo. `World.repairBridge()` muestra los tablones y
+  agrega el collider para poder cruzar.
+- **Isla 2 — "Cabo Roca"** (rocosa): `ISLANDS[1]` con `rocky:true` (terreno gris/musgo),
+  **árboles** (`nature.makeTree`), muchas rocas y un **faro** (`objects/Lighthouse.js`).
+- **Isla Pato con más vida** (`World._scatterHome`): arbustos, grupos de rocas (esconden
+  los tablones) y palmeras extra.
+
+## 2026-07-10 — El barco pirata en el horizonte (landmark)
+- **`objects/PirateShip.js`** (`makePirateShip`): galeón "El Pato Mareado" — casco con
+  franja roja, cañones, proa/bauprés, castillo de popa con ventanitas, 3 mástiles con
+  velas (con panza) y bandera pirata negra con calavera. Sin personajes ni colisión aún.
+- **En el mundo:** lejos en +Z desde el muelle (la meta en el horizonte), con balanceo
+  suave (`World._buildPirateShip` + bob en `update`). Plan: 3 islas de por medio para llegar.
+
 ## 2026-07-10 — Nombres de isla + minimapa con nombres + playas realistas
 - **Nombres de isla:** campo `name` en `ISLANDS` (World). Isla del comienzo = **"Isla Pato"**.
   `getMapData` lo expone; el **minimapa** dibuja el nombre centrado en cada isla (o "?"

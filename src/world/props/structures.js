@@ -64,6 +64,75 @@ export function buildBridge(x1, z1, x2, z2) {
   return { group, colliders: [collider], bridge: { x1, z1, x2, z2 } };
 }
 
+// Puente ROTO: le falta el tramo del medio (tablones ocultos) y NO tiene collider
+// hasta repararlo. Devuelve { group, collider, repair, bridge }. El World agrega el
+// group (y el marcador de minimapa) pero recién agrega el collider al llamar repair().
+export function buildBrokenBridge(x1, z1, x2, z2) {
+  const group = new THREE.Group();
+  const alongX = Math.abs(x2 - x1) >= Math.abs(z2 - z1);
+  const len = alongX ? Math.abs(x2 - x1) : Math.abs(z2 - z1);
+  const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
+  const width = 3.4;
+
+  const light = new THREE.MeshStandardMaterial({ color: 0xac7d43, roughness: 1 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x82531f, roughness: 1 });
+  const ropeMat = new THREE.MeshStandardMaterial({ color: 0x6b5636, roughness: 1 });
+
+  // Tablones: el tercio central arranca invisible (el hueco del puente roto).
+  const step = 0.55, n = Math.floor(len / step);
+  const gap0 = Math.floor(n * 0.34), gap1 = Math.floor(n * 0.66);
+  const missing = [];
+  for (let i = 0; i <= n; i++) {
+    const f = i / n;
+    const px = x1 + (x2 - x1) * f, pz = z1 + (z2 - z1) * f;
+    const size = alongX ? [0.5, 0.12, width] : [width, 0.12, 0.5];
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(...size), i % 2 ? light : dark);
+    plank.position.set(px, -0.06, pz);
+    plank.castShadow = true; plank.receiveShadow = true;
+    if (i >= gap0 && i <= gap1) { plank.visible = false; missing.push(plank); }
+    group.add(plank);
+  }
+  // Postes + soga (presentes, para que se vea que "fue" un puente).
+  const posts = Math.max(6, Math.round(len / 4));
+  const perp = alongX ? [0, 0, 1] : [1, 0, 0];
+  for (let i = 0; i <= posts; i++) {
+    const f = i / posts;
+    const px = x1 + (x2 - x1) * f, pz = z1 + (z2 - z1) * f;
+    for (const sgn of [-1, 1]) {
+      const off = sgn * (width / 2 - 0.15);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 1.15, 8), dark);
+      post.position.set(px + perp[0] * off, 0.5, pz + perp[2] * off);
+      post.castShadow = true;
+      group.add(post);
+    }
+  }
+  for (let i = 0; i <= 4; i++) {
+    const f = i / 4;
+    const pile = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 3.2, 8), dark);
+    pile.position.set(x1 + (x2 - x1) * f, -1.7, z1 + (z2 - z1) * f);
+    pile.castShadow = true;
+    group.add(pile);
+  }
+
+  // Colisión: los dos tramos intactos SON sólidos (no se atraviesa el puente ni se
+  // cae por las tablas visibles); el tramo del medio (el hueco) recién obtiene
+  // colisión al reparar, así hasta entonces no se puede cruzar.
+  const f0 = gap0 / n, f1 = gap1 / n;
+  const at = (f) => [x1 + (x2 - x1) * f, z1 + (z2 - z1) * f];
+  const deck = (aX, aZ, bX, bZ) => {
+    const size = alongX
+      ? new THREE.Vector3(Math.abs(bX - aX), 0.3, width)
+      : new THREE.Vector3(width, 0.3, Math.abs(bZ - aZ));
+    return new THREE.Box3().setFromCenterAndSize(new THREE.Vector3((aX + bX) / 2, -0.15, (aZ + bZ) / 2), size);
+  };
+  const [gx0, gz0] = at(f0), [gx1, gz1] = at(f1);
+  const colliders = [deck(x1, z1, gx0, gz0), deck(gx1, gz1, x2, z2)];   // tramos intactos
+  const gapCollider = deck(gx0, gz0, gx1, gz1);                          // el hueco (al reparar)
+  const repair = () => { for (const p of missing) p.visible = true; };
+
+  return { group, colliders, gapCollider, repair, bridge: { x1, z1, x2, z2 } };
+}
+
 // Plataforma-muelle de madera (postes al agua). seaLevel para el largo de los postes.
 export function buildWoodPlatform(x, y, z, w, d, seaLevel) {
   const group = new THREE.Group();

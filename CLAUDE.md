@@ -1,7 +1,8 @@
-# Juego de Belu 🎮❤️
+# Vacaciones en Isla Pato 🏝️🦆
 
-Juego 3D de mundo abierto con parkour, hecho como regalo para Belu (la novia de Gianlucca).
-Belu es la protagonista jugable.
+Juego 3D de aventura/parkour, hecho como regalo para Belu (la novia de Gianlucca).
+Belu es la protagonista jugable. Historia: rescatar a Gian ("el pato") del Capitán Lulu.
+Ver `GAME_DESIGN.md`.
 
 ## Visión del proyecto
 - **Género:** 3D mundo abierto explorable + parkour simple pero satisfactorio.

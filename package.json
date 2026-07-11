@@ -1,9 +1,9 @@
 {
-  "name": "juego-belu",
+  "name": "vacaciones-isla-pato",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Juego 3D de mundo abierto con parkour, protagonizado por Belu.",
+  "description": "Vacaciones en Isla Pato: aventura pirata 3D donde Belu rescata a su pato.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
