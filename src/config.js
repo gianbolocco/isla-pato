@@ -130,6 +130,54 @@ export const INTRO = {
     '¡Vení a salvar a tu pato! Te amo. — Gian',
 };
 
+// Isla 4 "El Búnker" (Bahía Binaria): ruina retro-tech en la selva. El Capitán Lulu
+// trabó el PUENTE LEVADIZO con una cerradura de COMPUERTAS LÓGICAS. Belu (ingeniera en
+// informática) mueve palancas de entrada (0/1); las compuertas AND/OR/NOT combinan las
+// señales; cuando la SALIDA se enciende en cian, el puente baja. Ver game/BunkerIsland.js.
+export const BUNKER = {
+  // Botella con el mensaje de Gian, ADENTRO de la isla (el paso del parkour se completa
+  // en x>332; si la botella está antes, Belu ya pasó cuando el mensaje se activa).
+  bottle: { x: 342, z: -16, y: 0.2 },
+  readRadius: 4.2,
+  bottleTitle: 'Che pato… la última traba 🔌',
+  bottleMessage:
+    '¡Pato! Casi llegás 😭. El <b>Capitán Lulu</b> trabó el <b>puente levadizo</b> con una ' +
+    '<b>cerradura de compuertas lógicas</b> bien enredada (se cree Bill Gates, el pirata). Yo ' +
+    'no entiendo nada… pero vos SÍ: sos la mejor <b>ingeniera en informática</b> del mundo 💛.<br><br>' +
+    'Movés las <b>8 palancas</b> (cada una 0 o 1). Las compuertas <b>AND / OR / NOT / XOR</b> ' +
+    'combinan las señales por el tablero. Cuando la <b>lámpara de SALIDA se ponga en cian</b>, ' +
+    'el puente baja.<br><br>Hay una sola combinación correcta. ¡Vos podés, pato! Te amo. — Gian',
+  // Consola del circuito (cerca del centro-este de la isla, ISLANDS[3] = (350,-18)).
+  console: { x: 356, z: -18 },
+  board: { w: 15.5, h: 8.5, y: 4.4 },
+  // Colores de señal (cian = 1 energizado; rojo tenue = 0).
+  colors: { on: 0x39f0ff, off: 0x7a2222 },
+  // Entradas (palancas): id + offset X respecto de la consola (fila al frente).
+  inputs: [
+    { id: 'A', dx: -6.0 }, { id: 'B', dx: -4.3 }, { id: 'C', dx: -2.6 }, { id: 'D', dx: -0.9 },
+    { id: 'E', dx: 0.9 }, { id: 'F', dx: 2.6 }, { id: 'G', dx: 4.3 }, { id: 'H', dx: 6.0 },
+  ],
+  // Circuito (data-driven): op + entradas + posición en el tablero (dx respecto consola, y).
+  // Ops soportadas: AND OR NOT XOR NAND NOR XNOR. Se evalúan en orden (ver _evaluate).
+  //
+  //   Restricciones: (A XOR B)·(E OR F)·(NOT F)·(G XOR H)·(A AND C)·(D AND G) todas en 1,
+  //   combinadas por un árbol de AND hasta la SALIDA.
+  //   Única solución (verificada por enumeración): A1 B0 C1 D1 E1 F0 G1 H0.
+  gates: [
+    { id: 'g1', op: 'XOR', in: ['A', 'B'], dx: -6.0, y: 2.6 },
+    { id: 'g3', op: 'OR', in: ['E', 'F'], dx: -3.6, y: 2.6 },
+    { id: 'g4', op: 'NOT', in: ['F'], dx: -1.2, y: 2.6 },
+    { id: 'g5', op: 'XOR', in: ['G', 'H'], dx: 1.2, y: 2.6 },
+    { id: 'g6', op: 'AND', in: ['A', 'C'], dx: 3.6, y: 2.6 },
+    { id: 'g7', op: 'AND', in: ['D', 'G'], dx: 6.0, y: 2.6 },
+    { id: 'c1', op: 'AND', in: ['g1', 'g3'], dx: -4.0, y: 4.4 },
+    { id: 'c2', op: 'AND', in: ['g4', 'g5'], dx: 0.0, y: 4.4 },
+    { id: 'c3', op: 'AND', in: ['g6', 'g7'], dx: 4.0, y: 4.4 },
+    { id: 'c4', op: 'AND', in: ['c1', 'c2'], dx: -2.0, y: 5.9 },
+    { id: 'OUT', op: 'AND', in: ['c4', 'c3'], dx: 0.6, y: 7.2 },
+  ],
+};
+
 // Avatar 3D con rig (Ready Player Me). Si `enabled` está en true y el .glb existe,
 // se usa el avatar con animación esquelética; si no, cae en el modelo de primitivas.
 // Ajustar `scale`/`yOffset`/`yawOffset` para calzar el avatar sobre el collider.

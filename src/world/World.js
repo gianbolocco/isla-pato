@@ -5,13 +5,15 @@ import { makeUmbrella, makeLounger, makeBeachBall, makeTable, makeGrill } from '
 import { makeChair, makeBucket, makeTackleBox, makeBottle as makeDrinkBottle, makeReeds } from './props/fishing.js';
 import { buildBarrel, buildWreck } from './props/parkour.js';
 import { buildRock } from './props/rocks.js';
+import { stoneMats } from './props/materials.js';
 import { buildCabin } from './props/Cabin.js';
 import { buildDock } from './props/Dock.js';
 import { buildBrokenBridge, buildBridge, buildWoodPlatform, buildRockPlatform } from './props/structures.js';
 import { buildGate } from './props/Gate.js';
+import { makeDrawbridge, makeGantry, makeCRT } from './props/bunker.js';
 import { makePirateShip } from '../objects/PirateShip.js';
 import { makeLighthouse } from '../objects/Lighthouse.js';
-import { QUIZ } from '../config.js';   // parrotPos: zona a despejar de árboles
+import { QUIZ, BUNKER } from '../config.js';   // parrotPos: zona a despejar de árboles; BUNKER: isla 4
 
 // El mundo: orquesta las islas (terreno con altura, playa, nieve), el mar, cielo,
 // luces y la ubicación de todos los props (que viven en ./props/*). Mantiene la
@@ -34,7 +36,7 @@ const ISLANDS = [
   // Cabo Roca es GRANDE a propósito (Juancho está escondido y cuesta encontrarlo).
   { name: 'Cabo Roca', cx: 118, cz: 22, base: 38, amp: 6, freq: 4, phase: 1.3, rocky: true },
   { name: 'Cala del Pescador', cx: 240, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },  // lejos de Cabo Roca (puente largo)
-  { cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0 },   // isla 4 — a diseñar (Nemo)
+  { name: 'El Búnker', cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0, bunker: true },  // isla 4: puzzle lógico
 ];
 
 function islandRadius(isl, a) {
@@ -133,6 +135,7 @@ export class World {
     this._scatterHome();        // vegetación/rocas extra en Isla Pato (esconden tablones)
     this._buildFishingIsland(); // isla 3: muelle + campamento de pesca de Alejandro
     this._buildParkour();       // isla 3 -> isla 4: puente destruido + parkour sobre el agua
+    this._buildBunkerIsland();  // isla 4: puente levadizo + ambiente retro-tech
     this._buildPirateShip();
   }
 
@@ -159,17 +162,13 @@ export class World {
     this.scene.add(g);
 
     // Árboles por la isla (despejando el campamento).
-    for (let i = 0; i < 12; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const rr = (0.2 + Math.random() * 0.55) * islandRadius(isl, a);
-      const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
-      if (Math.hypot(x - (cx - 2), z - (cz + 12)) < 9) continue;
+    this._scatter(isl, 12, 0.2, 0.75, (x, z) => {
       const tree = makeTree();
       tree.position.set(x, terrainHeight(isl, x, z), z);
       tree.scale.setScalar(0.95 + Math.random() * 0.5);
       tree.rotation.y = Math.random() * Math.PI * 2;
       this.scene.add(tree);
-    }
+    }, (x, z) => Math.hypot(x - (cx - 2), z - (cz + 12)) < 9);
   }
 
   // Isla 3 -> Isla 4: el puente lo destruyó Lulu → se cruza por PARKOUR (largo, dificultad
@@ -213,6 +212,82 @@ export class World {
     ];
   }
 
+  // Isla 4 "El Búnker": el PUENTE LEVADIZO (trabado arriba) hacia la isla del naufragio,
+  // su cabrestante, una plataforma de llegada del otro lado y el ambiente retro-tech
+  // (luces cian/magenta + nubes de tormenta). La consola del circuito la arma
+  // game/BunkerIsland.js (desde la Story). El puente baja con lowerDrawbridge().
+  _buildBunkerIsland() {
+    const isl = ISLANDS[3];
+    const px = isl.cx + islandRadius(isl, 0) - 2;   // pivote en el borde este
+    const len = 16;
+    this._dbPivot = { x: px, z: isl.cz };
+    this._dbEndX = px + len;
+    this._drawbridge = makeDrawbridge(px, isl.cz, len, 3.4);
+    this.scene.add(this._drawbridge.group);
+    this.scene.add(makeGantry(px, isl.cz, 3.4));
+    // Plataforma de llegada del otro lado (futura isla del naufragio).
+    this._place(buildRockPlatform(px + len + 1.4, 0.2, isl.cz, 2.8));
+
+    // Ambiente: luces locales cian/magenta + nubes de tormenta bajas sobre la isla.
+    const l1 = new THREE.PointLight(0x39f0ff, 1.3, 46, 2);
+    l1.position.set(BUNKER.console.x, 5, BUNKER.console.z - 1);
+    this.scene.add(l1);
+    const l2 = new THREE.PointLight(0xff53c0, 0.7, 32, 2);
+    l2.position.set(BUNKER.console.x - 5, 3, BUNKER.console.z + 2);
+    this.scene.add(l2);
+    for (let i = 0; i < 5; i++) {
+      const cloud = makeCloud();
+      cloud.position.set(isl.cx + (Math.random() - 0.5) * 42, 33 + Math.random() * 10, isl.cz + (Math.random() - 0.5) * 42);
+      cloud.scale.setScalar(1.5);
+      cloud.traverse((o) => {
+        if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.45); }
+      });
+      this.scene.add(cloud);   // estáticas (sólo ambientan la tormenta)
+    }
+
+    // Objetos de ambiente: selva oscura (árboles/arbustos), rocas, barriles-chatarra,
+    // monitores CRT sueltos y faroles que brillan. Lejos de la consola, la botella y el puente.
+    const avoid = (x, z) =>
+      Math.hypot(x - BUNKER.console.x, z - BUNKER.console.z) <= 10 ||
+      Math.hypot(x - BUNKER.bottle.x, z - BUNKER.bottle.z) <= 4 ||
+      x >= this._dbPivot.x - 3;
+    this._scatter(isl, 16, 0.5, 0.86, (x, z) => {
+      const tree = makeTree();
+      tree.position.set(x, terrainHeight(isl, x, z), z);
+      tree.scale.setScalar(0.9 + Math.random() * 0.5); tree.rotation.y = Math.random() * 7;
+      tree.traverse((o) => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.68); } });
+      this.scene.add(tree);
+    }, avoid);
+    this._scatter(isl, 12, 0.5, 0.86, (x, z) => this.scene.add(makeBush(x, z)), avoid);
+    const rmats = stoneMats([0x565c5c, 0x474d4d, 0x3f4a4a]);   // piedra oscura del Búnker
+    this._scatter(isl, 12, 0.5, 0.86, (x, z, i) => {
+      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, 0.6 + Math.random() * 1.2, rmats[i % 3], 0.8));
+    }, avoid);
+    for (const [dx, dz] of [[-9, 5.5], [-6.5, 7], [8.5, 6]]) {
+      this._place(buildBarrel(BUNKER.console.x + dx, 1.0, BUNKER.console.z + dz));
+    }
+    for (const [dx, dz, ry] of [[-11, 2.5, 0.6], [7.5, 4.5, -0.5]]) {
+      const crt = makeCRT();
+      crt.position.set(BUNKER.console.x + dx, 0, BUNKER.console.z + dz); crt.rotation.y = ry;
+      this.scene.add(crt);
+    }
+    // Faroles que brillan (poste + esfera emisiva + lucecita) — cálidos y algún cian.
+    for (const [dx, dz, col] of [[-8, -6, 0xffb14a], [10, -3, 0x39f0ff], [-13, 6, 0xffb14a]]) {
+      const x = BUNKER.console.x + dx, z = BUNKER.console.z + dz;
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 2.2, 6),
+        new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 1 }));
+      post.position.set(x, 1.1, z); post.castShadow = true; this.scene.add(post);
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: col, emissiveIntensity: 2.2 }));
+      orb.position.set(x, 2.35, z); this.scene.add(orb);
+      const pl = new THREE.PointLight(col, 0.5, 12, 2); pl.position.set(x, 2.35, z); this.scene.add(pl);
+    }
+  }
+
+  get drawbridgePivot() { return this._dbPivot || null; }
+  get drawbridgeEndX() { return this._dbEndX || 0; }
+  lowerDrawbridge() { if (this._drawbridge) this._drawbridge.lower(); }
+
   // "El Pato Mareado" lejos en el mar (dirección +Z desde el muelle): la meta.
   _buildPirateShip() {
     this.ship = makePirateShip();
@@ -241,6 +316,19 @@ export class World {
     if (built.bridge) this._bridges.push(built.bridge);
     if (built.platform) this._platforms.push(built.platform);
     if (built.platforms) this._platforms.push(...built.platforms);
+  }
+
+  // Dispersa `count` objetos al azar sobre una isla, entre `rMin`..`rMax` (fracción del
+  // radio del contorno). `place(x, z, i)` ubica cada uno; `avoid(x, z)` (opcional) devuelve
+  // true donde NO se debe poner (ej. despejar un NPC o el camino). Reutilizable por isla.
+  _scatter(isl, count, rMin, rMax, place, avoid) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const rr = (rMin + Math.random() * (rMax - rMin)) * islandRadius(isl, a);
+      const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
+      if (avoid && avoid(x, z)) continue;
+      place(x, z, i);
+    }
   }
 
   groundHeightAt(x, z) {
@@ -275,6 +363,13 @@ export class World {
       this.ship.rotation.z = this._shipBaseRot + Math.sin(this._time * 0.4) * 0.02;
     }
     if (this._gate) this._gate.update(dt);
+    if (this._drawbridge) {
+      this._drawbridge.update(dt);
+      if (this._drawbridge.isDown() && !this._dbAdded) {   // ya bajó: ahora es caminable
+        this.colliders.push(this._drawbridge.collider);
+        this._dbAdded = true;
+      }
+    }
     for (const c of this.clouds) {
       c.position.x += dt * c.userData.speed;
       if (c.position.x > 240) c.position.x = -240;
@@ -444,8 +539,7 @@ export class World {
   }
 
   _buildRocks() {
-    const mats = [0x8a8f96, 0x7c8188, 0x9aa0a6].map((c) =>
-      new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+    const mats = stoneMats();
     for (const isl of ISLANDS) {
       const isHome = isl === ISLANDS[0];
       for (let i = 0; i < 12; i++) {
@@ -482,45 +576,31 @@ export class World {
     lh.position.set(isl.cx, terrainHeight(isl, isl.cx, isl.cz), isl.cz);
     this.scene.add(lh);
 
-    // Zona despejada alrededor del loro Juancho (que no lo tapen los árboles/rocas),
-    // pero SÍ mucha vegetación alrededor para que cueste encontrarlo en la isla grande.
-    const clearOfParrot = (x, z) => Math.hypot(x - QUIZ.parrotPos.x, z - QUIZ.parrotPos.z) > 6;
+    // Zona a despejar alrededor del loro Juancho (que no lo tapen los árboles/rocas), con
+    // mucha vegetación alrededor para que cueste encontrarlo en la isla grande.
+    const nearParrot = (x, z) => Math.hypot(x - QUIZ.parrotPos.x, z - QUIZ.parrotPos.z) <= 6;
 
-    for (let i = 0; i < 32; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const rr = (0.18 + Math.random() * 0.7) * islandRadius(isl, a);
-      const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
-      if (!clearOfParrot(x, z)) continue;
+    this._scatter(isl, 32, 0.18, 0.88, (x, z) => {
       const tree = makeTree();
       tree.position.set(x, terrainHeight(isl, x, z), z);
       tree.scale.setScalar(0.95 + Math.random() * 0.55);
       tree.rotation.y = Math.random() * Math.PI * 2;
       this.scene.add(tree);
-    }
+    }, nearParrot);
 
-    const rockMats = [0x8a8f96, 0x7c8188, 0x6f757b].map((c) =>
-      new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
-    for (let i = 0; i < 38; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const rr = (0.1 + Math.random() * 0.75) * islandRadius(isl, a);
-      const x = isl.cx + Math.cos(a) * rr, z = isl.cz + Math.sin(a) * rr;
-      if (!clearOfParrot(x, z)) continue;
+    const rockMats = stoneMats([0x8a8f96, 0x7c8188, 0x6f757b]);
+    this._scatter(isl, 38, 0.1, 0.85, (x, z, i) => {
       const size = 0.6 + Math.random() * 1.6;
       this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, size, rockMats[i % 3], 0.8 + Math.random() * 0.4));
-    }
+    }, nearParrot);
   }
 
   // Vegetación y rocas extra en Isla Pato (esconden los tablones del nivel 1).
   _scatterHome() {
     const isl = ISLANDS[0];
     const g = new THREE.Group();
-    for (let i = 0; i < 18; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const rr = (0.2 + Math.random() * 0.65) * islandRadius(isl, a);
-      g.add(makeBush(isl.cx + Math.cos(a) * rr, isl.cz + Math.sin(a) * rr));
-    }
-    const rockMats = [0x8a8f96, 0x7c8188, 0x9aa0a6].map((c) =>
-      new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+    this._scatter(isl, 18, 0.2, 0.85, (x, z) => g.add(makeBush(x, z)));
+    const rockMats = stoneMats();
     // Grupitos de rocas (con colisión) cerca de donde están escondidos los tablones.
     const spots = [[3, -13], [-17, 7], [15, 8], [-11, 14], [19, -8], [-8, -14], [12, -3]];
     for (const [x, z] of spots) {
@@ -606,6 +686,11 @@ function buildIslandMesh(isl) {
       const rock = new THREE.Color(0x929892), moss = new THREE.Color(0x5c7d48);
       const m = Math.sin(x * 0.6) * Math.cos(z * 0.5) * 0.5 + 0.5;   // 0..1 manchones
       col = rock.clone().lerp(moss, m * 0.55).multiplyScalar(0.85 + Math.random() * 0.18);
+    } else if (isl.bunker) {
+      h = 0;   // piedra húmeda oscura + musgo (ruina tech al atardecer)
+      const stone = new THREE.Color(0x3f4a4a), moss = new THREE.Color(0x2f5540);
+      const m = Math.sin(x * 0.5) * Math.cos(z * 0.5) * 0.5 + 0.5;
+      col = stone.clone().lerp(moss, m * 0.5).multiplyScalar(0.7 + Math.random() * 0.16);
     } else {
       h = 0;
       const v = 0.82 + (Math.sin(x * 1.3) * Math.cos(z * 1.1) * 0.5 + 0.5) * 0.32;

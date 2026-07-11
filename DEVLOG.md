@@ -2,6 +2,55 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-11 — Limpieza: materiales compartidos + helpers reutilizables (sin duplicación)
+- **`world/props/materials.js`** (nuevo): factories `woodMats()` (tablones) y `stoneMats(colors?)`
+  (piedra facetada). Reemplazan los colores/materiales repetidos en `structures`, `Dock`,
+  `Gate` y `World` (7+ definiciones duplicadas). Devuelven instancias nuevas: tunear una isla
+  no afecta a las demás (aislamiento).
+- **`World._scatter(isl, count, rMin, rMax, place, avoid)`**: un solo helper para dispersar
+  vegetación/rocas al azar sobre una isla; reemplaza el bucle repetido en Cabo Roca, la Cala,
+  el Búnker e Isla Pato. Cada isla pasa su propio `place`/`avoid` (queda aislada).
+- **`Story._addBottleReader(...)`**: unifica las dos botellas leíbles con E (antes duplicadas)
+  y devuelve su estado `{ seen }`.
+- Código muerto eliminado (`makeNeonSign`). Sin cambios de comportamiento (build OK).
+
+## 2026-07-11 — El Búnker: estética madera/piedra + circuito complejo + fix botella
+- **Estética madera + piedra:** palancas de **madera** (con veta por CanvasTexture) sobre
+  base de piedra; el tablero ahora tiene **borde de madera** y las compuertas van enmarcadas
+  en madera; toda la consola se apoya sobre un **pedestal de ladrillos de piedra** caminable
+  (0.4 de alto ≤ stepHeight, con collider). Se sacaron los **carteles de neón rosa**.
+- **Circuito complejo** (data-driven en `config.BUNKER`, layout por gate): **8 palancas**
+  (A–H) y **11 compuertas** con AND/OR/NOT/**XOR** en árbol. Restricciones `(A XOR B)·(E OR
+  F)·(NOT F)·(G XOR H)·(A AND C)·(D AND G)` combinadas por ANDs. **Solución única** verificada
+  por enumeración (256 combos): `A1 B0 C1 D1 E1 F0 G1 H0`. Cables auto-generados desde `gate.in`.
+- **Compuertas legibles:** cada tipo con **color y borde propios** (AND verde, OR azul, NOT
+  naranja, XOR violeta) y **texto grande en negrita** (`gateLabelTexture`), tiles más grandes
+  — antes el símbolo cian chico "no se distinguía".
+- **Fix botella del Búnker:** estaba en x=330 pero el paso del parkour se completa en x>332,
+  así que el mensaje se activaba cuando Belu ya había pasado. Movida a x=342 (adentro).
+- **Ambiente:** selva oscura (árboles atenuados + arbustos), rocas, barriles-chatarra,
+  monitores CRT sueltos y **faroles que brillan** (cálidos + cian) alrededor de la consola.
+- `BunkerIsland` reescrito data-driven; `applyOp` soporta AND/OR/NOT/XOR/NAND/NOR/XNOR.
+
+## 2026-07-11 — Isla 4 "El Búnker": puzzle de compuertas lógicas + puente levadizo
+- **Nueva isla jugable (ingeniería en informática):** ruina retro-tech en la selva al
+  atardecer. El Capitán Lulu trabó el **puente levadizo** con una **cerradura de compuertas
+  lógicas**; Belu (la ingeniera) la resuelve.
+- **Puzzle** (`game/BunkerIsland.js`, data-driven en `config.BUNKER`): 4 **palancas** de
+  entrada (0/1, tecla E) + compuertas **AND/OR/NOT** con lámparas que muestran el estado en
+  vivo. `SALIDA = (A AND B) AND NOT(C OR D)` → única solución `A=1,B=1,C=0,D=0`. Al prender la
+  SALIDA se baja el puente. Cables que brillan según la señal (cian=1 / rojo=0).
+- **Props** (`world/props/bunker.js`): lámpara, palanca (manija que se inclina), módulo de
+  compuerta con símbolo (CanvasTexture), tablero, cables, carteles de neón, monitor CRT,
+  **puente levadizo** (pivotea y baja con animación) y cabrestante.
+- **Bioma** (`World`): `bunker:true` en ISLANDS[3] → piedra húmeda oscura + musgo; luces
+  locales cian/magenta y nubes de tormenta bajas. El puente levadizo + plataforma de llegada
+  del otro lado (futura isla del naufragio) + `lowerDrawbridge()`/collider al bajar.
+- **Botella #2 de Gian** en la llegada (`config.BUNKER.bottleMessage`) explicando el puzzle
+  (palancas 0/1, compuertas, prender la SALIDA en cian). Pasos nuevos en `Story`.
+- **Diseño:** la Isla 4 pasó a ser "El Búnker"; el reencuentro con **Nemo + el bote** se
+  movió a una isla posterior ("Cala Naufragio", pendiente). Ver `GAME_DESIGN.md`.
+
 ## 2026-07-11 — Cabo Roca grande (Juancho escondido) + islas más separadas + muralla de piedra
 - **Cabo Roca mucho más grande** (`base 26→38`) para que **cueste encontrar a Juancho**: se
   lo movió a un **rincón norte alejado del camino** (`QUIZ.parrotPos = (130, 46)`), con más

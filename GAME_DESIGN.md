@@ -44,11 +44,13 @@ No estamos atados a las 3 islas actuales: se reskinnean y se agregan escenarios.
 | 1 | 🌴 **Isla Pato** | Intro (botella) + juntar **tablones** para reparar el puente | ✅ |
 | 2 | 🪨 **Cabo Roca** (rocosa, árboles, faro) | **Loro Juancho**: quiz sobre Gian → clave → **reja con teclado** | ✅ |
 | 3 | 🎣 **Cala del Pescador** | **Alejandro** (papá): diálogo + **parkour** sobre el agua (Lulu destrozó el puente) | ✅ |
-| 4 | 🐾 **Isla 4** (a diseñar) | Aparece **Nemo** (sorpresa emotiva) + el **bote** al barco pirata | 🏗️ isla creada |
+| 4 | 🔌 **El Búnker** (ruina retro-tech, atardecer tormentoso) | **Circuito de compuertas lógicas** (AND/OR/NOT): mover palancas para prender la SALIDA y bajar el **puente levadizo** (guiño a ingeniería en informática) | ✅ |
+| 5 | 🐾 **Cala Naufragio** (a diseñar) | Aparece **Nemo** (sorpresa emotiva) + el **bote** al barco pirata | 🏗️ pendiente |
 | — | ⚓ **El Pato Mareado (final)** | Abordar, liberar a Gian | 🏗️ barco (landmark lejano) |
 
 Personajes/NPC: **Juancho** (loro), **Alejandro** ("pitu", papá pescador), **Capitán Lulu**
-(por modelar). Sistemas reutilizables: diálogo, interacción (E), teclado, checkpoints, parkour.
+(por modelar). Sistemas reutilizables: diálogo, interacción (E), teclado, checkpoints, parkour,
+**puzzle lógico** (palancas + compuertas + puente levadizo).
 
 El **barco pirata "El Pato Mareado"** ya está en el horizonte como meta lejana. Se llega
 cruzando las islas; cada una da un ítem/misión para pasar a la siguiente (nivel 1: tablones).

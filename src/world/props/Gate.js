@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { stoneMats } from './materials.js';
 
 // Reja (portcullis) de piedra que bloquea el paso al puente hacia la isla 3, flanqueada
 // por MUROS DE ROCA (con colisión) para que no se pueda pasar por el costado ni saltando.
@@ -6,10 +7,9 @@ import * as THREE from 'three';
 // update, pos }: el World saca `gateCollider` al abrir; los muros quedan siempre.
 export function buildGate(x, z) {
   const group = new THREE.Group();
-  const stone = new THREE.MeshStandardMaterial({ color: 0x8a8f96, roughness: 1, flatShading: true });
   const iron = new THREE.MeshStandardMaterial({ color: 0x3a3a40, roughness: 0.6, metalness: 0.4 });
-  const rockMats = [0x7c8188, 0x8a8f96, 0x6f757b].map((c) =>
-    new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+  const rockMats = stoneMats([0x7c8188, 0x8a8f96, 0x6f757b]);
+  const stone = rockMats[1];   // pilares/dintel: gris piedra estándar
 
   const W = 6.5, H = 4.8, T = 0.7;   // ancho(Z), alto(Y), grosor(X) del hueco
 

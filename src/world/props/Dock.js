@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { woodMats } from './materials.js';
 
 // Muelle de madera que sale hacia el mar (+Z). Tablones A RAS DEL PISO (como los
 // puentes) para poder caminar sobre él sin trabarse en un escalón. Devuelve
@@ -7,9 +8,7 @@ export function buildDock(x = 0, z1 = 22, z2 = 44, width = 3.2) {
   const group = new THREE.Group();
   const colliders = [];
   const len = z2 - z1, cz = (z1 + z2) / 2;
-  const light = new THREE.MeshStandardMaterial({ color: 0xac7d43, roughness: 1 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x82531f, roughness: 1 });
-  const ropeMat = new THREE.MeshStandardMaterial({ color: 0x6b5636, roughness: 1 });
+  const { light, dark, rope: ropeMat } = woodMats();
 
   // Tablones del deck (superficie en ~y=0).
   const step = 0.55, n = Math.floor(len / step);

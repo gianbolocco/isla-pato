@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { woodMats, stoneMats } from './materials.js';
 
 // Estructuras de madera/roca: puentes y plataformas de parkour. Builders puros que
 // devuelven { group, colliders, marker } para que el World componga escena/colisiones
@@ -73,9 +74,7 @@ export function buildBridge(x1, z1, x2, z2) {
   const ang = Math.atan2(z2 - z1, x2 - x1);
   const width = 3.4;
 
-  const light = new THREE.MeshStandardMaterial({ color: 0xac7d43, roughness: 1 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x82531f, roughness: 1 });
-  const ropeMat = new THREE.MeshStandardMaterial({ color: 0x6b5636, roughness: 1 });
+  const { light, dark, rope } = woodMats();
 
   const step = 0.55, n = Math.floor(len / step);
   for (let i = 0; i <= n; i++) {
@@ -85,7 +84,7 @@ export function buildBridge(x1, z1, x2, z2) {
     plank.castShadow = true; plank.receiveShadow = true;
     group.add(plank);
   }
-  bridgeRails(group, x1, z1, x2, z2, len, ang, dark, ropeMat);
+  bridgeRails(group, x1, z1, x2, z2, len, ang, dark, rope);
 
   return { group, colliders: deckColliders(x1, z1, x2, z2, width), bridge: { x1, z1, x2, z2 } };
 }
@@ -99,9 +98,7 @@ export function buildBrokenBridge(x1, z1, x2, z2) {
   const ang = Math.atan2(z2 - z1, x2 - x1);
   const width = 3.4;
 
-  const light = new THREE.MeshStandardMaterial({ color: 0xac7d43, roughness: 1 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x82531f, roughness: 1 });
-  const ropeMat = new THREE.MeshStandardMaterial({ color: 0x6b5636, roughness: 1 });
+  const { light, dark, rope } = woodMats();
 
   // Tablones: el tercio central arranca invisible (el hueco del puente roto).
   const step = 0.55, n = Math.floor(len / step);
@@ -116,7 +113,7 @@ export function buildBrokenBridge(x1, z1, x2, z2) {
     if (i >= gap0 && i <= gap1) { plank.visible = false; missing.push(plank); }
     group.add(plank);
   }
-  bridgeRails(group, x1, z1, x2, z2, len, ang, dark, ropeMat);
+  bridgeRails(group, x1, z1, x2, z2, len, ang, dark, rope);
 
   // Colisión: los dos tramos intactos SON sólidos (no se atraviesa el puente ni se
   // cae por las tablas visibles); el tramo del medio (el hueco) recién obtiene
@@ -135,8 +132,7 @@ export function buildBrokenBridge(x1, z1, x2, z2) {
 // Plataforma-muelle de madera (postes al agua). seaLevel para el largo de los postes.
 export function buildWoodPlatform(x, y, z, w, d, seaLevel) {
   const group = new THREE.Group();
-  const light = new THREE.MeshStandardMaterial({ color: 0xac7d43, roughness: 1 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x82531f, roughness: 1 });
+  const { light, dark } = woodMats();
   const planks = Math.max(3, Math.round(w / 0.5));
   const pw = w / planks;
   for (let i = 0; i < planks; i++) {
@@ -159,8 +155,7 @@ export function buildWoodPlatform(x, y, z, w, d, seaLevel) {
 // Plataforma de roca con cima plana y musgo.
 export function buildRockPlatform(x, y, z, r) {
   const group = new THREE.Group();
-  const mats = [0x8a8f96, 0x7c8188, 0x9aa0a6].map((c) =>
-    new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+  const mats = stoneMats();
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2;
     const rr = r * 0.6 * Math.random();
