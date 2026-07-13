@@ -25,21 +25,26 @@ new StartScreen(document.body, () => {
   game.input.requestLock();             // gesto del usuario (click del botón) → captura mouse
 });
 
-// Minimapa con la posicion del jugador.
+// Overlay "click para jugar": se muestra SIEMPRE que deberías tener control (jugando) pero el
+// puntero no está capturado. Se evalúa cada frame (no solo en onLockChange) para que reaparezca
+// aunque el requestLock haya fallado por no venir de un gesto (ej: al abordar el barco en el
+// final, que se dispara desde el loop). Oculto durante intro / UI abierta / cinemáticas.
+function updateOverlay() {
+  const playing = introDone && !game.uiActive && !game.cutsceneActive && !(game.finale && game.finale.cinematic);
+  overlay.classList.toggle('hidden', !playing || game.input.locked);
+}
+
+// Minimapa + overlay, cada frame.
 const minimap = new Minimap(game.world.getMapData());
-(function tickMinimap() {
+(function tick() {
   minimap.update(game.player.position, game.player.facing);
-  requestAnimationFrame(tickMinimap);
+  updateOverlay();
+  requestAnimationFrame(tick);
 })();
 
 // Al hacer click en el overlay, capturamos el puntero para mirar con el mouse.
 overlay.addEventListener('click', () => game.input.requestLock());
-
-// Mostrar/ocultar el overlay segun el pointer-lock. Durante la intro (introDone=false)
-// no se muestra; tampoco con una UI abierta (dialogo/teclado, mouse suelto a proposito).
-game.input.onLockChange = (locked) => {
-  overlay.classList.toggle('hidden', !introDone || locked || game.uiActive);
-};
+game.input.onLockChange = () => updateOverlay();
 
 // HUD simple con la altura alcanzada (util para probar el parkour).
 setInterval(() => {
