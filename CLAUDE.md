@@ -36,7 +36,7 @@ npm run build    # build de producción -> dist/
 - **`world/props/`** — objetos reutilizables, cada builder devuelve `{ group, colliders, ... }` o un `THREE.Group`:
   - `nature.js` (palmeras/pinos/nubes/arbustos), `beach.js` (sombrilla/reposera/pelota/mesa/parrilla),
   - `Cabin.js` (cabaña habitable + muebles), `Dock.js` (muelle), `structures.js` (puentes/plataformas),
-    `boat.js` (bote de remos de la Cala del Naufragio).
+    `shipwreck.js` (barco encallado reparable, isla 5) + `shipParts.js` (piezas coleccionables).
 - `world/{meshUtils,textures}.js` — `meshFrom` y texturas procedurales (CanvasTexture).
 - `world/Props.js` — cargador de props `.glb` externos (Poly Pizza/Kenney), ver `PROPS`.
 - `objects/Bottle.js` — la botella del mensaje de la intro.

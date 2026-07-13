@@ -2,6 +2,25 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-12 — Rediseño Cala del Naufragio: isla grande rocosa + juntar piezas + puzzle de armado
+- **Isla más grande, rocosa y con montañas** (`ISLANDS[4]`, base 46, `rocky+hills`): nuevo
+  relieve `hillsHeight` (suma de montículos smootherstep) enganchado en `terrainHeight`; la
+  malla usa 44 anillos y tiñe los picos más pelados/claros. Bordes de **playa** como Isla Pato
+  (el perfil de arena ya aplica a todas). Lomas empinadas (algunas bloquean) → algo de parkour;
+  **escalera de rocas** hasta un pico donde se esconde una pieza.
+- **Barco encallado grande y realista** (`world/props/shipwreck.js`, `buildShipwreck`): velero
+  escorado sobre rocas, casco maltrecho con cuadernas a la vista, castillo de popa, bauprés.
+  Arranca ROTO; `installPart(order)` revela cada pieza (pop) y `repair()` iza la bandera y lo
+  endereza. Cabeceo en el agua. Reemplaza al bote (borrado `props/boat.js`).
+- **Misión = juntar 8 piezas + armarlas** (`game/ShipwreckIsland.js` reescrito): Nemo (E) arranca
+  la misión → aparecen las **8 piezas** (`world/props/shipParts.js` + `game/ShipPartsField.js`,
+  cercanía, a la altura del terreno) por la isla → al juntarlas, reparar el barco (E) abre el
+  **puzzle de armado** (`ui/AssemblyPuzzle.js`): elegir las piezas en ORDEN (de abajo hacia
+  arriba); cada acierto arma la pieza en el barco 3D → reparado → **embarcar** (E) → cierre.
+- **Config** `NAUFRAGIO` data-driven (dx/dz relativos al centro; `parts` con `order`). World
+  expone `naufragio` (posiciones absolutas) + `installShipPart/repairShipwreck`. Story: 6 pasos
+  nuevos; el warp del panel usa `naufragio.arrival`. Textos en `textos.js → barcoPuzzle/barcoListo`.
+
 ## 2026-07-12 — Panel de desarrollo temporal (teletransporte por islas)
 - **`ui/DevPanel.js`** (nuevo, TEMPORAL): panel arriba-derecha con un botón por isla +
   "destrabar todo" + coords/objetivo en vivo. **Atajos 1–5** (y 0 = inicio) que funcionan

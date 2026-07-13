@@ -11,7 +11,7 @@ import { buildDock } from './props/Dock.js';
 import { buildBrokenBridge, buildBridge, buildWoodPlatform, buildRockPlatform } from './props/structures.js';
 import { buildGate } from './props/Gate.js';
 import { makeDrawbridge, makeGantry, makeCRT } from './props/bunker.js';
-import { makeBoat } from './props/boat.js';
+import { buildShipwreck } from './props/shipwreck.js';
 import { makePirateShip } from '../objects/PirateShip.js';
 import { makeLighthouse } from '../objects/Lighthouse.js';
 import { QUIZ, BUNKER, NAUFRAGIO } from '../config.js';   // parrotPos: zona a despejar; BUNKER/NAUFRAGIO: islas 4 y 5
@@ -38,7 +38,17 @@ const ISLANDS = [
   { name: 'Cabo Roca', cx: 118, cz: 22, base: 38, amp: 6, freq: 4, phase: 1.3, rocky: true },
   { name: 'Cala del Pescador', cx: 240, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },  // lejos de Cabo Roca (puente largo)
   { name: 'El Búnker', cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0, bunker: true },  // isla 4: puzzle lógico
-  { name: 'Cala del Naufragio', cx: 442, cz: -36, base: 25, amp: 6, freq: 5, phase: 0.8 },  // isla 5: Nemo + el bote
+  // Isla 5: la MÁS grande, rocosa y con montañas (lomas empinadas). Bordes de playa como
+  // Isla Pato. `hills` = relieve caminable/empinado (ver hillsHeight). Nemo + barco encallado.
+  {
+    name: 'Cala del Naufragio', cx: 460, cz: -44, base: 46, amp: 8, freq: 4, phase: 0.8, rocky: true,
+    hills: [
+      { dx: -14, dz: 6, r: 15, h: 10 },    // pico empinado (pieza escondida arriba) — parkour
+      { dx: 16, dz: -8, r: 22, h: 9 },     // loma grande
+      { dx: 4, dz: 24, r: 16, h: 6 },
+      { dx: -8, dz: -22, r: 17, h: 7 },
+    ],
+  },
 ];
 
 function islandRadius(isl, a) {
@@ -48,6 +58,19 @@ function islandRadius(isl, a) {
 }
 
 function smoother(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+
+// Relieve de lomas/montañas: suma de montículos suaves (smootherstep) definidos en
+// `isl.hills` = [{dx, dz, r, h}]. Devuelve la altura del terreno en (x,z), 0 si la isla no
+// tiene lomas. Los montículos deben apagarse antes del borde (para no romper la playa).
+function hillsHeight(isl, x, z) {
+  if (!isl.hills) return 0;
+  let h = 0;
+  for (const m of isl.hills) {
+    const d = Math.hypot(x - (isl.cx + m.dx), z - (isl.cz + m.dz));
+    if (d < m.r) h += m.h * smoother(1 - d / m.r);
+  }
+  return h;
+}
 
 // Muestrea la montaña en (x,z): devuelve altura, si esta sobre el camino, y nieve.
 // La montaña son TERRAZAS planas (escalones) conectadas por una RAMPA en espiral:
@@ -103,8 +126,8 @@ function beachDrop(f) {
 function terrainHeight(isl, x, z) {
   const dx = x - isl.cx, dz = z - isl.cz;
   const f = Math.hypot(dx, dz) / islandRadius(isl, Math.atan2(dz, dx));
-  const base = isl.mountain ? mountainSample(isl, x, z).h : 0;
-  return base + beachDrop(f);          // interior = base; borde = base + pendiente de playa
+  const base = isl.mountain ? mountainSample(isl, x, z).h : hillsHeight(isl, x, z);
+  return base + beachDrop(f);          // interior = base (montaña/lomas); borde = base + pendiente de playa
 }
 
 function bump(x, z) {
@@ -291,55 +314,74 @@ export class World {
   get drawbridgeEndX() { return this._dbEndX || 0; }
   lowerDrawbridge() { if (this._drawbridge) this._drawbridge.lower(); }
 
-  // Isla 5 "Cala del Naufragio": tras el puente levadizo, una cala soleada con un barco
-  // encallado. Un puente la une a la plataforma de llegada del Búnker. Acá viven el
-  // naufragio, el bote (visual) y la vegetación; a Nemo y la interacción los pone
-  // game/ShipwreckIsland.js. Checkpoints de llegada para no rehacer todo si te caés.
+  // Isla 5 "Cala del Naufragio": la isla más grande y rocosa (con montañas). Un puente la
+  // une a la plataforma de llegada del Búnker. Acá viven el BARCO ENCALLADO en las rocas (que
+  // se repara con el puzzle), las escaleras de roca al pico donde se esconde una pieza, y la
+  // vegetación. Nemo, las piezas y el puzzle los maneja game/ShipwreckIsland.js. Expone
+  // `naufragio` (posiciones absolutas) e `installShipPart/repairShipwreck` para el barco 3D.
   _buildShipwreckIsland() {
     const isl = ISLANDS[4];
     const cx = isl.cx, cz = isl.cz;
+    const abs = (dx, dz) => ({ x: cx + dx, z: cz + dz });
 
     // Puente desde la plataforma de llegada del puente levadizo hasta la orilla oeste.
-    const landX = this._dbEndX + 1.4, landZ = this._dbPivot.z;   // plataforma de llegada del Búnker
+    const landX = this._dbEndX + 1.4, landZ = this._dbPivot.z;
     const shoreX = cx - islandRadius(isl, Math.PI) + 1.5;
     this._place(buildBridge(landX, landZ, shoreX, cz));
 
-    // Gran barco encallado en la playa (la "cala del naufragio") + restos alrededor.
-    this._place(buildWreck(cx - 4, 1.6, cz - 3));
-    for (const [dx, dz] of [[-11, 6], [-6, 9], [3, 11], [-13, -2]]) {
-      this._place(buildBarrel(cx + dx, 0.9, cz + dz));
+    // Datos absolutos (resueltos desde config NAUFRAGIO + centro de la isla) para el manager.
+    const ship = abs(NAUFRAGIO.ship.dx, NAUFRAGIO.ship.dz);
+    this._naufragioData = {
+      center: { cx, cz },
+      arrival: { x: shoreX + 5, z: cz },
+      nemo: abs(NAUFRAGIO.nemo.dx, NAUFRAGIO.nemo.dz),
+      ship: { x: ship.x, z: ship.z },
+      boardRadius: NAUFRAGIO.boardRadius,
+      parts: NAUFRAGIO.parts.map((p) => ({ kind: p.kind, name: p.name, order: p.order, ...abs(p.dx, p.dz) })),
+    };
+
+    // El barco encallado en las rocas de la orilla este.
+    this._shipwreck = buildShipwreck(ship.x, 0.2, ship.z, NAUFRAGIO.ship.rotY);
+    this.scene.add(this._shipwreck.group);
+    this.colliders.push(...this._shipwreck.colliders);
+
+    // Escalera de rocas hasta el pico empinado donde se esconde una pieza (parkour). Sube
+    // hacia el centro del pico (hill[0]) desde el lado interior de la isla.
+    const peak = isl.hills[0];
+    const px = cx + peak.dx, pz = cz + peak.dz;
+    for (const [dx, dz, y] of [[9, 1, 2.5], [6, -1.5, 4.5], [3.5, 1, 6.5], [1.5, -0.5, 8.5]]) {
+      this._place(buildRockPlatform(px + dx, y, pz + dz, 1.7));
     }
 
-    // El bote de remos en la orilla, apuntando al mar abierto (hacia +Z, donde está el barco).
-    const b = NAUFRAGIO.boat;
-    const boat = makeBoat();
-    boat.position.set(b.x, b.y, b.z);
-    boat.rotation.y = Math.atan2(b.x - cx, b.z - cz);   // proa (+Z) hacia afuera de la isla
-    this.scene.add(boat);
-
-    // Vegetación tropical (cala alegre) + algunas rocas de orilla, despejando Nemo/bote.
-    const avoid = (x, z) =>
-      Math.hypot(x - NAUFRAGIO.nemo.x, z - NAUFRAGIO.nemo.z) < 4 ||
-      Math.hypot(x - b.x, z - b.z) < 4;
-    this._scatter(isl, 8, 0.25, 0.8, (x, z) => {
-      const palm = makePalm();
-      palm.position.set(x, terrainHeight(isl, x, z), z);
-      palm.rotation.y = Math.random() * Math.PI * 2;
-      this.scene.add(palm);
+    // Vegetación rocosa + rocas grandes (montañas-hito), despejando Nemo, el barco y las piezas.
+    const clearOf = this._naufragioData.parts.concat([this._naufragioData.nemo, { x: ship.x, z: ship.z }]);
+    const avoid = (x, z) => clearOf.some((p) => Math.hypot(x - p.x, z - p.z) < 4.5);
+    this._scatter(isl, 14, 0.2, 0.82, (x, z) => {
+      const tree = makeTree();
+      tree.position.set(x, terrainHeight(isl, x, z), z);
+      tree.scale.setScalar(0.9 + Math.random() * 0.5); tree.rotation.y = Math.random() * 7;
+      this.scene.add(tree);
     }, avoid);
-    this._scatter(isl, 8, 0.3, 0.85, (x, z) => this.scene.add(makeBush(x, z)), avoid);
-    const rmats = stoneMats();
-    this._scatter(isl, 10, 0.15, 0.85, (x, z, i) => {
-      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, 0.5 + Math.random() * 1.1, rmats[i % 3], 0.7));
+    this._scatter(isl, 14, 0.25, 0.85, (x, z) => this.scene.add(makeBush(x, z)), avoid);
+    const rmats = stoneMats([0x8a8f96, 0x7c8188, 0x6f757b]);
+    this._scatter(isl, 22, 0.12, 0.88, (x, z, i) => {
+      const size = 0.7 + Math.random() * 2.2;   // varias bien grandes (montañas de roca)
+      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, size, rmats[i % 3], 0.8 + Math.random() * 0.4));
     }, avoid);
+    for (const [dx, dz] of [[NAUFRAGIO.ship.dx - 8, NAUFRAGIO.ship.dz + 5], [NAUFRAGIO.ship.dx - 6, NAUFRAGIO.ship.dz - 6]]) {
+      this._place(buildBarrel(cx + dx, 0.9, cz + dz));   // barriles de escombro junto al barco
+    }
 
-    // Checkpoints: al llegar al Búnker (tras el parkour) y al pisar la cala, para que una
-    // caída no te mande de vuelta a la Cala del Pescador. Se agregan antes de crear Story.
+    // Checkpoints: llegada al Búnker (tras el parkour) y a la cala (una caída no te manda atrás).
     if (this.checkpoints) {
-      this.checkpoints.push({ x: 340, y: 1.2, z: -16 });        // llegada al Búnker
-      this.checkpoints.push({ x: shoreX + 3, y: 1.2, z: cz });  // llegada a la Cala del Naufragio
+      this.checkpoints.push({ x: 340, y: 1.2, z: -16 });
+      this.checkpoints.push({ x: shoreX + 5, y: 1.2, z: cz });
     }
   }
+
+  get naufragio() { return this._naufragioData || null; }
+  installShipPart(order) { if (this._shipwreck) this._shipwreck.installPart(order); }
+  repairShipwreck() { if (this._shipwreck) this._shipwreck.repair(); }
 
   // "El Pato Mareado" lejos en el mar (dirección +Z desde el muelle): la meta.
   _buildPirateShip() {
@@ -423,6 +465,7 @@ export class World {
         this._dbAdded = true;
       }
     }
+    if (this._shipwreck) this._shipwreck.update(dt);   // barco encallado: pop de piezas + cabeceo
     for (const c of this.clouds) {
       c.position.x += dt * c.userData.speed;
       if (c.position.x > 240) c.position.x = -240;
@@ -710,7 +753,7 @@ export class World {
 function buildIslandMesh(isl) {
   const group = new THREE.Group();
   const ANG = 128;
-  const RINGS = isl.mountain ? 46 : 10;
+  const RINGS = (isl.mountain || isl.hills) ? 44 : 10;
   const grassF = GRASS_F;   // hasta acá el pasto; de acá al borde, la playa
   const skirtY = -6;
 
@@ -735,10 +778,12 @@ function buildIslandMesh(isl) {
         col = green.clone().multiplyScalar(0.9 + Math.random() * 0.14);
       }
     } else if (isl.rocky) {
-      h = 0;
-      const rock = new THREE.Color(0x929892), moss = new THREE.Color(0x5c7d48);
+      h = hillsHeight(isl, x, z);   // 0 si la isla rocosa no tiene lomas (ej. Cabo Roca)
+      const rock = new THREE.Color(0x929892), moss = new THREE.Color(0x5c7d48), bare = new THREE.Color(0xb7bcb7);
       const m = Math.sin(x * 0.6) * Math.cos(z * 0.5) * 0.5 + 0.5;   // 0..1 manchones
-      col = rock.clone().lerp(moss, m * 0.55).multiplyScalar(0.85 + Math.random() * 0.18);
+      col = rock.clone().lerp(moss, m * 0.55);
+      if (isl.hills) col.lerp(bare, THREE.MathUtils.clamp(h / 11, 0, 1) * 0.65);   // picos más pelados/claros
+      col.multiplyScalar(0.85 + Math.random() * 0.18);
     } else if (isl.bunker) {
       h = 0;   // piedra húmeda oscura + musgo (ruina tech al atardecer)
       const stone = new THREE.Color(0x3f4a4a), moss = new THREE.Color(0x2f5540);

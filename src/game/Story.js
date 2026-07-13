@@ -38,7 +38,7 @@ export class Story {
     this.caboRoca = new CaboRoca(scene, world, player, this.dialogue, this.keypad, ui, this.interaction);
     this.fishingIsland = new FishingIsland(scene, world, this.dialogue, ui, this.interaction);
     this.bunker = new BunkerIsland(scene, world, this.interaction);
-    this.shipwreck = new ShipwreckIsland(scene, world, this.messageBox, this.dialogue, ui, this.interaction);
+    this.shipwreck = new ShipwreckIsland(scene, world, player, container, this.messageBox, this.dialogue, ui, this.interaction);
     this.checkpoints = new Checkpoints(scene, player, world.checkpoints || []);
 
     // Botella con el mensaje de Gian, en el muelle (intro).
@@ -141,14 +141,22 @@ export class Story {
       },
       {
         objective: 'Llegaste a la Cala del Naufragio… ¿escuchás ese ladrido? 🐶',
-        update: () => this.player.position.x > 424,
+        update: () => this.player.position.x > (this.world.naufragio?.arrival.x ?? 414),
       },
       {
-        objective: 'Seguí el ladrido entre los restos y saludá a quien te encontró (E) 🐶',
+        objective: 'Seguí el ladrido y saludá a quien te encontró (E) 🐶',
         update: () => this.shipwreck.talked,
       },
       {
-        objective: '¡Nemo encontró un bote! Subite para ir a El Pato Mareado ⛵',
+        objective: () => `Junté las piezas del barco por la isla: ${this.shipwreck.collected}/${this.shipwreck.total} 🪵`,
+        update: () => this.shipwreck.allCollected,
+      },
+      {
+        objective: 'Volvé al barco y armá las piezas en orden para repararlo (E) 🔧',
+        update: () => this.shipwreck.repaired,
+      },
+      {
+        objective: '¡Barco reparado! Embarcá para ir a El Pato Mareado ⚓',
         update: () => this.shipwreck.aboard,
       },
       {
@@ -175,7 +183,7 @@ export class Story {
       caboRoca:  { step: 4,  x: 84,  z: 22,  unlock: 1 },  // requiere puente reparado
       cala:      { step: 7,  x: 224, z: 0,   unlock: 2 },  // + reja abierta
       bunker:    { step: 9,  x: 340, z: -16, unlock: 2 },  // (el parkour se saltea al teleportar)
-      naufragio: { step: 12, x: 424, z: -36, unlock: 3 },  // + puente levadizo bajo
+      naufragio: { step: 12, x: null, z: null, unlock: 3 },  // usa world.naufragio.arrival (abajo)
     };
     const t = targets[key];
     if (!t) return;
@@ -183,6 +191,10 @@ export class Story {
     if (t.unlock >= 1) this.world.repairBridge();
     if (t.unlock >= 2) this.world.openGate();
     if (t.unlock >= 3) this.world.lowerDrawbridge();
+
+    if (key === 'naufragio' && this.world.naufragio) {
+      t.x = this.world.naufragio.arrival.x; t.z = this.world.naufragio.arrival.z;
+    }
 
     const gy = this.world.groundHeightAt(t.x, t.z) ?? 0;
     const y = gy + this.player.half.y + 0.1;
