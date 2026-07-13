@@ -24,6 +24,7 @@ npm run build    # build de producción -> dist/
 
 ## Arquitectura (src/)
 - `config.js` — constantes ajustables (físicas, cámara, render/bloom/toon, INTRO, AVATAR, PROPS). **Tunear el "feel" aquí.**
+- **`textos.js`** — TODOS los textos del juego (intro narrada, botellas, diálogos de Juancho y Alejandro). **Editar los textos acá** (config engancha los strings desde este archivo).
 - `main.js` — punto de entrada; arranca el juego.
 - `core/Game.js` — escena, renderer, cámara 3ra persona (con colisión), post-FX (bloom), loop principal, intro (botella + mensaje).
 - `core/Input.js` — teclado + mouse (pointer lock).

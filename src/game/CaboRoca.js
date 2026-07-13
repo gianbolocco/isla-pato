@@ -1,5 +1,6 @@
 import { makeParrot } from '../objects/Parrot.js';
 import { QUIZ } from '../config.js';
+import { TEXTOS } from '../textos.js';
 
 // Misión de Cabo Roca (isla 2): Juancho (loro) hace 3 preguntas sobre Gian y da la
 // clave; con la clave, en la reja se abre el teclado y se abre el paso. La cercanía y
@@ -33,7 +34,7 @@ export class CaboRoca {
     interaction.add({
       pos: () => this._talkPos,
       radius: QUIZ.talkRadius,
-      prompt: () => 'Apretá <b>E</b> para hablar con Juancho 🦜',
+      prompt: () => `Apretá <b>E</b> para hablar con ${TEXTOS.juancho.nombre} 🦜`,
       enabled: () => !this.talked,
       onInteract: () => this._startQuiz(),
     });
@@ -57,31 +58,31 @@ export class CaboRoca {
 
   _startQuiz() {
     this.ui.open();
-    const name = QUIZ.parrotName;
-    this.dialogue.show(name,
-      `¡Braaawk! Soy <b>${name}</b>. Yo sé la clave de la reja… pero primero: ¿de verdad conocés a tu pato? 🦜`,
-      [{ label: '¡Dale, preguntame!', onClick: () => this._ask(0) }]);
+    const J = TEXTOS.juancho;
+    this.dialogue.show(J.nombre, J.saludo.replaceAll('{nombre}', J.nombre),
+      [{ label: J.empezar, onClick: () => this._ask(0) }]);
   }
 
   _ask(i) {
-    const name = QUIZ.parrotName;
-    if (i >= QUIZ.questions.length) { this._finishQuiz(); return; }
-    const q = QUIZ.questions[i];
-    const opts = q.options.map((opt, idx) => ({
+    const J = TEXTOS.juancho;
+    const qs = J.preguntas;
+    if (i >= qs.length) { this._finishQuiz(); return; }
+    const q = qs[i];
+    const opts = q.opciones.map((opt, idx) => ({
       label: opt,
       onClick: () => {
-        if (idx === q.correct) this._ask(i + 1);
-        else this.dialogue.show(name, '¡Braaawk! ✖ Esa no… ¿en serio? Probá de nuevo 🦜',
+        if (idx === q.correcta) this._ask(i + 1);
+        else this.dialogue.show(J.nombre, J.incorrecto,
           [{ label: 'Reintentar', onClick: () => this._ask(i) }]);
       },
     }));
-    this.dialogue.show(name, `Pregunta ${i + 1}/${QUIZ.questions.length}: <b>${q.q}</b>`, opts);
+    this.dialogue.show(J.nombre, `Pregunta ${i + 1}/${qs.length}: <b>${q.pregunta}</b>`, opts);
   }
 
   _finishQuiz() {
     this.talked = true;
-    this.dialogue.show(QUIZ.parrotName,
-      `¡Braaawk! Se nota que lo querés 💛. La clave de la reja es <b>${QUIZ.code}</b>. ¡Andá a salvar a tu pato! 🦜`,
+    const J = TEXTOS.juancho;
+    this.dialogue.show(J.nombre, J.final.replaceAll('{clave}', QUIZ.code),
       [{ label: 'Cerrar', onClick: () => { this.dialogue.hide(); this.ui.close(); } }]);
   }
 

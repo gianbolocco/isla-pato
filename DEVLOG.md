@@ -2,6 +2,26 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-11 — Todos los textos en un solo archivo editable (`textos.js`)
+- **`src/textos.js`** (nuevo): centraliza TODO el texto del juego con encabezado de "cómo
+  editar" — `intro` (tarjetas), `botellaIntro`, `botellaBunker`, `juancho` (nombre, saludo,
+  incorrecto, final, preguntas) y `alejandro` (nombre, líneas). Placeholders `{nombre}`/`{clave}`.
+- **Enganches:** `config.js` importa `TEXTOS` y arma `INTRO`/`BUNKER`/`DAD` desde ahí (posiciones
+  y gameplay quedan en config); `CaboRoca` lee a Juancho desde `TEXTOS.juancho` (la clave sigue
+  en `QUIZ.code`); `StartScreen` usa `TEXTOS.intro`. Sin strings de diálogo sueltos en el código.
+
+## 2026-07-11 — Menú de inicio + intro narrada (contexto de la historia)
+- **`ui/StartScreen.js`** (nuevo): pantalla de arranque que se muestra UNA vez, con el juego
+  renderizando de fondo. **Menú** (título, "Comenzar", controles, "un regalo para Belu") →
+  **intro narrada** en 5 tarjetas: vacaciones en Isla Pato → Belu se tira la siesta → Gian
+  se va a explorar ("ya vuelvo, pato") → Belu se despierta y Gian no está, ni una novedad →
+  "salí a buscar a tu pato". Botón "Empezar la aventura" + link "Saltar intro".
+- **`main.js`:** durante el menú/intro, Belu queda **congelada** (`game.uiActive=true`) y el
+  overlay de "click para jugar" oculto (`introDone`). Al terminar, `onDone()` es SINCRÓNICO
+  (dentro del click) para que `requestPointerLock` cuente como gesto del usuario.
+- **`index.html`:** el `#overlay` arranca oculto y pasó a ser la pantalla de "click para
+  jugar" (reaparece al soltar el mouse con Esc), no un segundo menú.
+
 ## 2026-07-11 — Limpieza: materiales compartidos + helpers reutilizables (sin duplicación)
 - **`world/props/materials.js`** (nuevo): factories `woodMats()` (tablones) y `stoneMats(colors?)`
   (piedra facetada). Reemplazan los colores/materiales repetidos en `structures`, `Dock`,

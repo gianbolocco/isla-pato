@@ -1,5 +1,9 @@
 // Constantes ajustables del juego. Tunear el "feel" del parkour desde acá.
 // Unidades: 1 ≈ 1 metro, tiempo en segundos.
+//
+// Los TEXTOS del juego (diálogos, intro, botellas) NO viven acá: están en `textos.js`
+// para editarlos fácil. Acá abajo solo se enganchan a las constantes de gameplay.
+import { TEXTOS } from './textos.js';
 
 export const PHYSICS = {
   gravity: -34,          // aceleración hacia abajo
@@ -51,44 +55,22 @@ export const PLANK_PICKUP_RADIUS = 2.2;
 
 // Nivel 2 (Cabo Roca): el loro Juancho sabe la clave de la reja. Hace 3 preguntas
 // sobre Gian antes de darla. PLACEHOLDERS obvios — editá q/options/correct y `code`.
+// Gameplay del loro Juancho (Cabo Roca). Los textos/preguntas están en textos.js → juancho.
 export const QUIZ = {
-  parrotName: 'Juancho',
   code: '1234',                 // 🔢 CLAVE (número). Cambiala por una con significado.
   parrotPos: { x: 130, z: 46 }, // rincón NORTE escondido de Cabo Roca (isla grande, cz=22)
   talkRadius: 3.2,
   gateRadius: 4.5,
-  questions: [
-    {
-      q: '¿Cómo se llama el "pato" que Belu quiere rescatar?',
-      options: ['Gianlucca', 'Un pingüino', 'El Capitán Lulu'],
-      correct: 0,
-    },
-    {
-      q: '¿Quién se llevó a Gian en el barco pirata?',
-      options: ['El Capitán Lulu', 'Un delfín', 'Nemo el perro'],
-      correct: 0,
-    },
-    {
-      q: '¿Cómo se dicen de cariño Belu y Gian?',
-      options: ['Pato', 'Jefe', 'Vecino'],
-      correct: 0,
-    },
-  ],
 };
 
 // Nivel 3 (Isla de pesca): Alejandro, el papá de Belu. Le dice "pitu". El Capitán Lulu
 // le destrozó el puente → hay que cruzar por parkour. Editá las líneas a gusto.
+// Gameplay de Alejandro (Cala del Pescador). Nombre y líneas están en textos.js → alejandro.
 export const DAD = {
-  name: 'Alejandro',
+  name: TEXTOS.alejandro.nombre,
+  lines: TEXTOS.alejandro.lineas,
   pos: { x: 234, z: 12 },   // Cala del Pescador (isla corrida al este, cx=240)
   talkRadius: 3.6,
-  lines: [
-    '¿Qué hacés, pitu? 🎣 Estaba acá tranquilo pescando…',
-    '…cuando apareció el <b>Capitán Lulu</b>. El muy pirata sabe que andás buscando a Gian.',
-    'Y para complicarte, ¡me <b>destrozó el puente</b> a la otra isla! 😤',
-    'Vas a tener que cruzar <b>saltando por las rocas y los restos del naufragio</b>. ¡Con cuidado, pitu!',
-    'Tomá, llevate mi <b>anzuelo de la suerte</b> 🎣. ¡Traémelo a Gian! Te amo, hija 💛',
-  ],
 };
 
 // Props decorativos (.glb gratis, ej. Poly Pizza / Kenney / Quaternius) que se
@@ -120,14 +102,8 @@ export const PLAYER = {
 export const INTRO = {
   bottle: { x: 0, z: 40, y: 0.1 },  // sobre el muelle (a ras), cerca de la punta
   readRadius: 3.4,                // a esta distancia aparece el mensaje
-  title: 'Querido pato…',
-  message:
-    'Necesito ayudaaaaa! Me quise hacer el niño explorador y sali a recorrer la hermosa isla pato, me perdí... y el <b>Capitán Lulu</b> ' +
-    'me secuestró. Estoy en su barco pirataa.<br><br>' +
-    'Para rescatarme vas a tener que <b>avanzar por todas las islas</b>. En la ' +
-    '<b>última isla</b> hay un barco para navegar hasta el barco pirata y rescatarme.<br><br>' +
-    'Hay puente destruido, que te lleva a la proxima isla, tienes que buscar la manera de repararlo y avanzar<br><br>' +
-    '¡Vení a salvar a tu pato! Te amo. — Gian',
+  title: TEXTOS.botellaIntro.titulo,
+  message: TEXTOS.botellaIntro.mensaje,
 };
 
 // Isla 4 "El Búnker" (Bahía Binaria): ruina retro-tech en la selva. El Capitán Lulu
@@ -139,14 +115,8 @@ export const BUNKER = {
   // en x>332; si la botella está antes, Belu ya pasó cuando el mensaje se activa).
   bottle: { x: 342, z: -16, y: 0.2 },
   readRadius: 4.2,
-  bottleTitle: 'Che pato… la última traba 🔌',
-  bottleMessage:
-    '¡Pato! Casi llegás 😭. El <b>Capitán Lulu</b> trabó el <b>puente levadizo</b> con una ' +
-    '<b>cerradura de compuertas lógicas</b> bien enredada (se cree Bill Gates, el pirata). Yo ' +
-    'no entiendo nada… pero vos SÍ: sos la mejor <b>ingeniera en informática</b> del mundo 💛.<br><br>' +
-    'Movés las <b>8 palancas</b> (cada una 0 o 1). Las compuertas <b>AND / OR / NOT / XOR</b> ' +
-    'combinan las señales por el tablero. Cuando la <b>lámpara de SALIDA se ponga en cian</b>, ' +
-    'el puente baja.<br><br>Hay una sola combinación correcta. ¡Vos podés, pato! Te amo. — Gian',
+  bottleTitle: TEXTOS.botellaBunker.titulo,
+  bottleMessage: TEXTOS.botellaBunker.mensaje,
   // Consola del circuito (cerca del centro-este de la isla, ISLANDS[3] = (350,-18)).
   console: { x: 356, z: -18 },
   board: { w: 15.5, h: 8.5, y: 4.4 },

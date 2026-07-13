@@ -41,12 +41,15 @@
 
     <div id="hud"></div>
 
-    <div id="overlay">
-      <h1>Vacaciones en Isla Pato 🏝️🦆</h1>
-      <p>Click para empezar la aventura</p>
+    <!-- Pantalla de "click para jugar" (captura el mouse). Arranca oculta: primero va el
+         menú + intro (src/ui/StartScreen.js); esto reaparece al soltar el mouse con Esc. -->
+    <div id="overlay" class="hidden">
+      <h1>🏝️🦆</h1>
+      <p>Click para jugar</p>
       <p class="keys">
         <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> moverse ·
-        <kbd>Espacio</kbd> saltar · <kbd>Shift</kbd> correr · <kbd>Mouse</kbd> mirar
+        <kbd>Espacio</kbd> saltar · <kbd>Shift</kbd> correr · <kbd>Mouse</kbd> mirar ·
+        <kbd>E</kbd> interactuar
       </p>
     </div>
 
