@@ -10,13 +10,14 @@ import { NAUFRAGIO } from '../config.js';
 // después Belu EMBARCA. Expone: talked, allCollected, tally, stationLabel, launched, aboard.
 
 export class ShipwreckIsland {
-  constructor(scene, world, player, container, messageBox, dialogue, ui, interaction, cutscene) {
+  constructor(scene, world, player, container, messageBox, dialogue, ui, interaction, cutscene, finale) {
     this.world = world;
     this.player = player;
     this.messageBox = messageBox;
     this.dialogue = dialogue;
     this.ui = ui;
     this.cutscene = cutscene;
+    this.finale = finale;
 
     this.talked = false;
     this.aboard = false;       // ya zarpó (llegó al lado del barco pirata)
@@ -132,12 +133,9 @@ export class ShipwreckIsland {
     }
   }
 
-  // TODO(final): reemplazar el placeholder por la secuencia final (a diseñar con el usuario).
   _boardPirate() {
     this.boarded = true;
-    this.messageBox.show('El Pato Mareado 🏴‍☠️',
-      '¡Abordaste el barco del <b>Capitán Lulu</b>! El rescate de tu pato está por comenzar…' +
-      '<br><br><i>(el final está en construcción)</i>');
+    if (this.finale) this.finale.start();   // arranca el final (cañonazo → llave → liberar a Gian)
   }
 
   _makeMarker() {

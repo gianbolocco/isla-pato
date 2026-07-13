@@ -21,7 +21,7 @@ del "damsel in distress").
 - **Gian ("el pato")** — el secuestrado. Tira chistes desde la jaula. Se hizo el
   **niño explorador**, se perdió, y por eso lo agarraron. (modelo chibi ya hecho)
 - **Capitán Lulu** — villano bobo-adorable: parche, gordito, gorro pirata, rubio,
-  pelo corto, barbita. *(por modelar en 3D estilo chibi)*
+  pelo corto, barbita. (modelo chibi ya hecho, `entities/LuluModel.js`)
 
 ## Chiste maestro: "PATO" 🦆
 Belu y Gian se dicen **"pato"**. Es el hilo de oro de todo el juego:
@@ -46,7 +46,7 @@ No estamos atados a las 3 islas actuales: se reskinnean y se agregan escenarios.
 | 3 | 🎣 **Cala del Pescador** | **Alejandro** (papá): diálogo + **parkour** sobre el agua (Lulu destrozó el puente) | ✅ |
 | 4 | 🔌 **El Búnker** (ruina retro-tech, atardecer tormentoso) | **Circuito de compuertas lógicas** (AND/OR/NOT): mover palancas para prender la SALIDA y bajar el **puente levadizo** (guiño a ingeniería en informática) | ✅ |
 | 5 | 🐾 **Cala del Naufragio** (la isla más grande, rocosa, con montañas; bordes de playa) | **Rosa** (reencuentro, E) → juntar **materiales** (madera/tela/soga/brea) por la isla (uno en un pico, parkour) → reparar la **carabela encallada** en 4 **estaciones** (casco→cubierta→vela→calafatear) → el barco **se bota al agua** → **embarcar (E)** → **cinemática**: Belu y Rosa navegan hasta quedar al lado de El Pato Mareado | ✅ |
-| — | ⚓ **El Pato Mareado (final)** | Abordar, liberar a Gian | 🏗️ barco (landmark lejano) |
+| — | ⚓ **El Pato Mareado (FINAL)** | Abordar (E) → **cañonazo** a Lulu (sale volando, suelta la llave) → agarrar la **llave** → abrir la **jaula** y liberar a Gian → reencuentro + **carta dedicada** ("Fin ❤️") | ✅ |
 
 Personajes/NPC: **Juancho** (loro), **Alejandro** ("pitu", papá pescador), **Capitán Lulu**
 (por modelar). Sistemas reutilizables: diálogo, interacción (E), teclado, checkpoints, parkour,
@@ -81,5 +81,7 @@ cruzando las islas; cada una da un ítem/misión para pasar a la siguiente (nive
 
 ## Estado de assets
 - ✅ Modelos: Belu, Gianlucca, Rosa (chibi, con toon shading).
-- ⏳ Por modelar: Capitán Lulu, piratas, barco, props piratas.
+- ✅ Modelos: Capitán Lulu (`LuluModel`). El barco pirata "El Pato Mareado" es el escenario
+  final caminable (`objects/PirateShip.js`) con jaula (`props/cage.js`) y cañón (`props/cannon.js`).
+- ⏳ Por modelar (futuro): otros piratas, más props.
 - Render: bloom + toon + tone mapping (ver `config.js → RENDER`).

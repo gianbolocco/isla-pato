@@ -19,7 +19,7 @@ import { Checkpoints } from './Checkpoints.js';
 // managers de cada isla y el sistema de checkpoints (respawn).
 
 export class Story {
-  constructor(scene, world, player, container, ui, input, cutscene) {
+  constructor(scene, world, player, container, ui, input, cutscene, finale) {
     this.scene = scene;
     this.world = world;
     this.player = player;
@@ -38,7 +38,7 @@ export class Story {
     this.caboRoca = new CaboRoca(scene, world, player, this.dialogue, this.keypad, ui, this.interaction);
     this.fishingIsland = new FishingIsland(scene, world, this.dialogue, ui, this.interaction);
     this.bunker = new BunkerIsland(scene, world, this.interaction);
-    this.shipwreck = new ShipwreckIsland(scene, world, player, container, this.messageBox, this.dialogue, ui, this.interaction, cutscene);
+    this.shipwreck = new ShipwreckIsland(scene, world, player, container, this.messageBox, this.dialogue, ui, this.interaction, cutscene, finale);
     this.checkpoints = new Checkpoints(scene, player, world.checkpoints || []);
 
     // Botella con el mensaje de Gian, en el muelle (intro).

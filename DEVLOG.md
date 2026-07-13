@@ -2,6 +2,23 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-13 — FINAL de la historia: abordaje del Pato Mareado (cañonazo → llave → liberar a Gian)
+- **`game/Finale.js`** (nuevo): máquina de estados del final. Al abordar (E) el barco pirata: Belu
+  camina por la cubierta → **dispara el cañón a Lulu** (E, auto-apuntado; bola + fogonazo/humo) →
+  **Lulu sale volando** y suelta la **llave** → agarrar la llave (cercanía) → **abrir la jaula** (E)
+  → sale **Gian** → **reencuentro** (cámara propia) + **carta dedicada** (`TEXTOS.finalCarta`) y
+  pantalla **"Fin ❤️"**.
+- **Barco pirata caminable** (`objects/PirateShip.js` rehecho): cubierta + alcázar + amuras +
+  **anchors** (deckSpawn/cannon/lulu/cage/wheel). `World.enterFinaleStage()` lo congela, lo pone
+  axis-aligned y agrega colliders de cubierta + barandas; `pirateAnchorWorld()` da posiciones.
+- **Actores/props nuevos:** `entities/LuluModel.js` (Capitán Lulu chibi + `knockOut()` cómico),
+  `world/props/cage.js` (jaula con puerta que abre), `world/props/cannon.js` (cañón). Gian
+  (`GianluccaModel`) va preso en la jaula y sale al liberarlo.
+- **Enganches:** `Game` crea `this.finale`; `Story`/`ShipwreckIsland` lo reciben; `_boardPirate()`
+  llama `finale.start()`. `Game._tick` maneja `finale.cinematic` (cámara del reencuentro).
+- **Textos** (`textos.js`): `lulu` (amenaza/derrota), `gianRescate`, **`finalCarta`** (mensaje
+  dedicado editable). **DevPanel:** tecla **9** salta directo al final (temporal, para testear).
+
 ## 2026-07-13 — Nivel 1: el puente se repara con E (consistente con la isla 5)
 - Antes el puente roto se reparaba **solo** al juntar el último tablón. Ahora, tras juntar
   todos los tablones, hay que **volver al puente y apretar E** para arreglarlo (igual que las

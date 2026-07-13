@@ -441,12 +441,44 @@ export class World {
 
   // "El Pato Mareado" lejos en el mar (dirección +Z desde el muelle): la meta.
   _buildPirateShip() {
-    this.ship = makePirateShip();
+    const built = makePirateShip();
+    this.ship = built.group;
+    this._pirateAnchors = built.anchors;
     this.ship.scale.setScalar(1.6);
     this.ship.position.set(40, SEA_LEVEL, 285);
     this.ship.rotation.y = -0.5;   // de perfil/3-4 hacia la isla
     this._shipBaseRot = this.ship.rotation.z;
     this.scene.add(this.ship);
+  }
+
+  // Posición en MUNDO de un anchor del barco pirata (asume el barco ya axis-aligned; el final
+  // lo snappea en enterFinaleStage). Escala aplicada, sin rotación.
+  pirateAnchorWorld(name) {
+    const a = this._pirateAnchors[name], s = this.ship, SC = s.scale.x;
+    return new THREE.Vector3(s.position.x + a.x * SC, s.position.y + a.y * SC, s.position.z + a.z * SC);
+  }
+
+  // Prepara el barco pirata como ESCENARIO caminable del final: lo congela (sin cabeceo), lo
+  // pone axis-aligned y agrega los colliders de la cubierta (piso + barandas). Devuelve el
+  // punto de spawn (mundo). Idempotente.
+  enterFinaleStage() {
+    const s = this.ship, SC = s.scale.x, a = this._pirateAnchors;
+    if (!this._finaleStage) {
+      this._finaleStage = true;
+      s.rotation.set(0, 0, 0);
+      s.position.y = SEA_LEVEL;
+      this._pirateFrozen = true;
+      const dcx = s.position.x + a.deck.x * SC, dcz = s.position.z + a.deck.z * SC;
+      const top = s.position.y + a.deck.y * SC;
+      this.colliders.push(new THREE.Box3().setFromCenterAndSize(   // piso de la cubierta
+        new THREE.Vector3(dcx, top - 0.25, dcz), new THREE.Vector3(a.deck.halfX * 2 * SC, 0.5, a.deck.halfZ * 2 * SC)));
+      const hx = a.deck.halfX * SC, hz = a.deck.halfZ * SC, wy = top + 1.0;
+      for (const [ox, oz, sx, sz] of [[hx, 0, 0.6, hz * 2], [-hx, 0, 0.6, hz * 2], [0, hz, hx * 2, 0.6], [0, -hz, hx * 2, 0.6]]) {
+        this.colliders.push(new THREE.Box3().setFromCenterAndSize(   // barandas (no caerse)
+          new THREE.Vector3(dcx + ox, wy, dcz + oz), new THREE.Vector3(sx, 2.0, sz)));
+      }
+    }
+    return this.pirateAnchorWorld('deckSpawn');
   }
 
   get seaLevel() { return SEA_LEVEL; }
@@ -520,7 +552,7 @@ export class World {
   update(dt) {
     this._time += dt;
     if (this.sea) this.sea.position.y = SEA_LEVEL + Math.sin(this._time * 0.6) * 0.08;
-    if (this.ship) {
+    if (this.ship && !this._pirateFrozen) {
       this.ship.position.y = SEA_LEVEL + Math.sin(this._time * 0.5) * 0.4;
       this.ship.rotation.z = this._shipBaseRot + Math.sin(this._time * 0.4) * 0.02;
     }

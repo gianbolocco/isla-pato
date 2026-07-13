@@ -121,4 +121,30 @@ export const TEXTOS = {
       '<i>— Continuará: el abordaje a El Pato Mareado —</i>',
   },
 
+  // --- FINAL (abordaje del Pato Mareado): Capitán Lulu, rescate de Gian y carta dedicada. ---
+  lulu: {
+    nombre: 'Capitán Lulu',
+    amenaza:
+      '¡BRAAA! ¿Quién se atreve a abordar <b>mi</b> Pato Mareado?… ¿una chica con una gata? 😼<br>' +
+      '¡Jo jo jo! Nunca liberarás a tu "patito". ¡El cañón no te servirá de na—!',
+    derrota: '¡NOOO, mi gorriteee! 💫',
+  },
+
+  // Líneas de Gian al salir de la jaula (se muestran en el reencuentro).
+  gianRescate:
+    '¡PATO! 😭 Sabía que ibas a venir a buscarme…<br><br>' +
+    'Cruzaste islas, arreglaste un barco y le metiste un cañonazo a un pirata. ' +
+    'Sos la persona más valiente, inteligente y hermosa del mundo. 💛',
+
+  // ✍️ CARTA FINAL — el mensaje dedicado de Gian a Belu. EDITÁ ESTO con tus palabras.
+  finalCarta: {
+    titulo: 'Para vos, mi pato 💛',
+    mensaje:
+      'Belu, hice este jueguito entero para decirte algo simple: <b>te amo</b>.<br><br>' +
+      'Gracias por bancarme, por hacerme reír y por ser mi lugar favorito del mundo. Cada isla ' +
+      'de este viaje es un pedacito de lo mucho que te quiero.<br><br>' +
+      'Sos mi pato. Y yo, para siempre, el tuyo. 🦆❤️<br><br>' +
+      '<i>(editá este mensaje en src/textos.js → finalCarta)</i>',
+  },
+
 };

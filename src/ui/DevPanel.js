@@ -90,6 +90,7 @@ export class DevPanel {
       const tag = document.activeElement && document.activeElement.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;   // no interferir con campos de texto
       if (e.code === 'Backquote') { this.el.style.display = this.el.style.display === 'none' ? 'block' : 'none'; return; }
+      if (e.code === 'Digit9' || e.code === 'Numpad9') { this.game.finale && this.game.finale.start(); return; }  // saltar al FINAL
       if (this.game.uiActive) return;   // no warpear con un diálogo/teclado abierto (evita choques)
       if (e.code === 'Digit0' || e.code === 'Numpad0') { this._warp('pato'); return; }
       for (const isl of ISLANDS) {
