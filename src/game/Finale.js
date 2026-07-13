@@ -173,7 +173,7 @@ export class Finale {
     this.state = 'opening';
     this.hud.set('');
     this._gianMoving = true;
-    this._gianTarget = new THREE.Vector3(this.cagePos.x - 2.6, this.deckY, this.cagePos.z);
+    this._gianTarget = new THREE.Vector3(this.cagePos.x - 4.5, this.deckY, this.cagePos.z);   // hacia el hueco entre palos
   }
 
   _updateGianOut(dt) {
@@ -212,9 +212,10 @@ export class Finale {
   _updateReunion(dt) {
     this._reuT += dt;
     const m = this._meet, cam = this.camera, t = this._t;
-    // Cámara desde el costado (+Z), con leve deriva, mirando a la pareja.
-    cam.position.set(m.x - 0.6 + Math.sin(t * 0.3) * 0.8, this.deckY + 3.0, m.z + 6.5 + Math.sin(t * 0.2) * 0.6);
-    cam.lookAt(m.x - 0.5, this.deckY + 1.2, m.z);
+    // Cámara alta desde estribor (+Z), cerca y por encima de la baranda, mirando a la pareja.
+    // Los mástiles (línea central z=285) quedan DETRÁS de la pareja → nunca la tapan.
+    cam.position.set(m.x - 0.4 + Math.sin(t * 0.3) * 0.7, this.deckY + 4.0, m.z + 4.5 + Math.sin(t * 0.2) * 0.5);
+    cam.lookAt(m.x, this.deckY + 1.0, m.z);
 
     if (this._reuT > 1.2 && !this._msgShown) {
       this._msgShown = true;

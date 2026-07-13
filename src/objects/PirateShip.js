@@ -143,12 +143,15 @@ export function makePirateShip() {
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 
   // Anchors LOCALES. `colliders` = [cx,cy,cz, hx,hy,hz] (semiejes) → el World los escala/ubica.
+  // Los actores del final van sobre el COSTADO de estribor (z>0), a un lado de los mástiles
+  // (que están en la línea central z=0), en los huecos entre palos → la cámara del reencuentro
+  // (desde estribor, mirando a babor) nunca los tapa.
   const anchors = {
     deck: { x: 2.25, y: DECK, z: 0, halfX: 10.5, halfZ: 4.1 },
-    deckSpawn: { x: 9, y: DECK, z: 2.2 },
-    cannon: { x: 4, y: DECK, z: 2.4 },
-    lulu: { x: -5, y: DECK, z: 1.4 },
-    cage: { x: 10.5, y: DECK, z: -1.6 },
+    deckSpawn: { x: 6, y: DECK, z: 2.5 },
+    cannon: { x: 2, y: DECK, z: 2.5 },
+    lulu: { x: -4, y: DECK, z: 2.5 },
+    cage: { x: 9.5, y: DECK, z: 2.6 },
     wheel: { x: -9.5, y: QY + 0.9, z: 0 },
     colliders: [
       [2.25, DECK - 0.25, 0, 10.6, 0.25, 4.15],   // piso de la cubierta (tope = DECK)
