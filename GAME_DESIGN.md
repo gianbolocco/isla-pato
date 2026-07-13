@@ -45,7 +45,7 @@ No estamos atados a las 3 islas actuales: se reskinnean y se agregan escenarios.
 | 2 | 🪨 **Cabo Roca** (rocosa, árboles, faro) | **Loro Juancho**: quiz sobre Gian → clave → **reja con teclado** | ✅ |
 | 3 | 🎣 **Cala del Pescador** | **Alejandro** (papá): diálogo + **parkour** sobre el agua (Lulu destrozó el puente) | ✅ |
 | 4 | 🔌 **El Búnker** (ruina retro-tech, atardecer tormentoso) | **Circuito de compuertas lógicas** (AND/OR/NOT): mover palancas para prender la SALIDA y bajar el **puente levadizo** (guiño a ingeniería en informática) | ✅ |
-| 5 | 🐾 **Cala del Naufragio** (la isla más grande, rocosa, con montañas; bordes de playa) | **Rosa** (reencuentro, E) → juntar **materiales** (madera/tela/soga/brea) por la isla (uno en un pico, parkour) → reparar la **carabela encallada** en 4 **estaciones** (casco→cubierta→vela→calafatear) → el barco **se bota al agua** → **embarcar** al barco pirata | ✅ |
+| 5 | 🐾 **Cala del Naufragio** (la isla más grande, rocosa, con montañas; bordes de playa) | **Rosa** (reencuentro, E) → juntar **materiales** (madera/tela/soga/brea) por la isla (uno en un pico, parkour) → reparar la **carabela encallada** en 4 **estaciones** (casco→cubierta→vela→calafatear) → el barco **se bota al agua** → **embarcar (E)** → **cinemática**: Belu y Rosa navegan hasta quedar al lado de El Pato Mareado | ✅ |
 | — | ⚓ **El Pato Mareado (final)** | Abordar, liberar a Gian | 🏗️ barco (landmark lejano) |
 
 Personajes/NPC: **Juancho** (loro), **Alejandro** ("pitu", papá pescador), **Capitán Lulu**

@@ -422,6 +422,8 @@ export class World {
 
   get naufragio() { return this._naufragioData || null; }
   get shipwreckLaunched() { return this._shipwreck ? this._shipwreck.ship.isLaunched() : false; }
+  get shipwreckShip() { return this._shipwreck ? this._shipwreck.ship : null; }   // API del barco (cinemática)
+  get pirateShip() { return this.ship; }                                          // "El Pato Mareado" (meta)
   installShipPart(order) { if (this._shipwreck) this._shipwreck.ship.installPart(order); }
 
   // Bota el barco al agua: calcula un punto en el mar (afuera del centro) y lo lanza.

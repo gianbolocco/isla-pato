@@ -3,29 +3,42 @@ import * as THREE from 'three';
 // Props de naturaleza reutilizables. Cada maker devuelve un THREE.Group con el
 // origen en la base (y=0), listo para posicionar en el mundo.
 
-// Pino conífero. `snow` (default true) le pone el gorrito de nieve (islas nevadas);
-// para islas tropicales/rocosas pasar { snow: false }.
+// Pino conífero grande y frondoso (~4 unidades). `snow` (default true) le pone el gorrito de
+// nieve (islas nevadas); para islas tropicales/rocosas pasar { snow: false }. Escalar en el
+// mundo para variar el tamaño. Origen en la base.
 export function makePine({ snow = true } = {}) {
   const g = new THREE.Group();
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.8, 8),
-    new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 1 }));
-  trunk.position.y = 0.4; trunk.castShadow = true;
+  const barkMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 1, flatShading: true });
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.28, 1.3, 8), barkMat);
+  trunk.position.y = 0.65; trunk.castShadow = true;
   g.add(trunk);
-  const green = new THREE.MeshStandardMaterial({ color: 0x2f6f3a, roughness: 1, flatShading: true });
+
+  // Follaje: 5 pisos de conos que se solapan, con verdes variados y leve caída.
+  const greens = [0x2b5f32, 0x347038, 0x3f8340, 0x2f6f3a].map((c) =>
+    new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
   const snowM = new THREE.MeshStandardMaterial({ color: 0xf4f7fb, roughness: 1, flatShading: true });
-  let y = 0.7;
-  for (let i = 0; i < 3; i++) {
-    const r = 0.7 - i * 0.17, h = 0.8;
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), snow ? green : green.clone());
-    cone.position.y = y + h * 0.4; cone.castShadow = true;
+  const layers = 5;
+  let y = 1.1;
+  for (let i = 0; i < layers; i++) {
+    const t = i / (layers - 1);
+    const r = 1.35 * (1 - t * 0.72);          // ancho abajo → angosto arriba
+    const h = 1.25 * (1 - t * 0.32);
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 9), greens[i % greens.length]);
+    cone.position.y = y + h * 0.5;
+    cone.rotation.y = Math.random() * Math.PI;   // rompe la simetría entre pisos
+    cone.castShadow = true;
     g.add(cone);
-    y += h * 0.5;
+    if (snow) {
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(r * 0.9, h * 0.45, 9), snowM);
+      cap.position.y = y + h * 0.72; cap.rotation.y = cone.rotation.y;
+      g.add(cap);
+    }
+    y += h * 0.62;
   }
-  if (snow) {
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 8), snowM);
-    cap.position.y = y + 0.35;
-    g.add(cap);
-  }
+  // Puntita.
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.7, 8), snow ? snowM : greens[0]);
+  tip.position.y = y + 0.2; tip.castShadow = true;
+  g.add(tip);
   return g;
 }
 

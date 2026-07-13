@@ -2,6 +2,19 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-13 — Cinemática de zarpe (Cala del Naufragio → barco pirata) + ajustes
+- **`game/SailCutscene.js`** (nuevo): al reparar el barco y **embarcar (E)**, arranca una
+  cinemática — Belu y Rosa suben a la cubierta (hijas del barco, viajan con él) y el barco
+  **navega por el mar hasta quedar al lado de "El Pato Mareado"**, con cámara de persecución
+  que mira al frente; al llegar, toma final de los dos barcos + mensaje de cierre.
+- **Enganches:** `Game.cutsceneActive` congela el control normal y deja que SailCutscene maneje
+  cámara + barco; el barco expone `group3d` + `setCinematic()` (deja de auto-moverse); `World`
+  expone `pirateShip` / `shipwreckShip`. `Story`/`ShipwreckIsland` reciben la cinemática y la
+  disparan en `_board()`.
+- **Ajustes de arte:** la **boca de Rosa** estaba muy abajo (subida, más chica). **Pinos** más
+  grandes y realistas (`makePine` rehecho: tronco más alto + 5 pisos de conos con verdes
+  variados y puntita; ~4 unidades), escalados más grandes en la isla.
+
 ## 2026-07-13 — Rosa (gata) reemplaza a Nemo como compañera
 - **Nuevo `entities/RosaModel.js`**: gata chibi blanca y negra (bicolor/esmoquin) — cuerpo blanco
   con manchas negras, orejas puntiagudas, ojos verdes, naricita rosa, bigotes y cola larga que se

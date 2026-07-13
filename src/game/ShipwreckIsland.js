@@ -10,12 +10,13 @@ import { NAUFRAGIO } from '../config.js';
 // después Belu EMBARCA. Expone: talked, allCollected, tally, stationLabel, launched, aboard.
 
 export class ShipwreckIsland {
-  constructor(scene, world, player, container, messageBox, dialogue, ui, interaction) {
+  constructor(scene, world, player, container, messageBox, dialogue, ui, interaction, cutscene) {
     this.world = world;
     this.player = player;
     this.messageBox = messageBox;
     this.dialogue = dialogue;
     this.ui = ui;
+    this.cutscene = cutscene;
 
     this.talked = false;
     this.aboard = false;
@@ -116,8 +117,13 @@ export class ShipwreckIsland {
   }
 
   _board() {
-    this.aboard = true;
-    this.messageBox.show(NAUFRAGIO.boardTitle, NAUFRAGIO.boardMessage);
+    // Cinemática de zarpe: Belu y Rosa navegan hasta el barco pirata. Al llegar, aboard=true.
+    if (this.cutscene) {
+      this.cutscene.start({ rosa: this.rosa, onArrive: () => { this.aboard = true; } });
+    } else {
+      this.aboard = true;
+      this.messageBox.show(NAUFRAGIO.boardTitle, NAUFRAGIO.boardMessage);
+    }
   }
 
   _makeMarker() {

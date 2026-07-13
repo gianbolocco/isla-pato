@@ -10,6 +10,7 @@ import { Player } from '../entities/Player.js';
 import { makeToonGradient, toonify } from './toon.js';
 import { loadProps } from '../world/Props.js';
 import { Story } from '../game/Story.js';
+import { SailCutscene } from '../game/SailCutscene.js';
 
 // Orquesta escena, renderer, camara en 3ra persona, input y el loop principal.
 export class Game {
@@ -61,8 +62,13 @@ export class Game {
       active: () => this.uiActive,
     };
 
+    // Cinemática de zarpe (Cala del Naufragio → barco pirata). `cutsceneActive` congela el
+    // control normal (cámara/jugador) y deja que SailCutscene maneje cámara y barco.
+    this.cutsceneActive = false;
+    this.sailCutscene = new SailCutscene(this);
+
     // --- Historia (checkpoints): botella + mensaje + tablones + loro Juancho + reja ---
-    this.story = new Story(this.scene, this.world, this.player, container, this._ui, this.input);
+    this.story = new Story(this.scene, this.world, this.player, container, this._ui, this.input, this.sailCutscene);
 
     // Props decorativos (.glb gratis) apoyados en el suelo.
     loadProps(this.scene, this.world, PROPS);
@@ -104,12 +110,17 @@ export class Game {
     // dt acotado para evitar saltos gigantes si la pestaña estuvo en segundo plano.
     const dt = Math.min(this.clock.getDelta(), 0.05);
 
-    // Con una UI abierta (diálogo/teclado), Belu queda congelada y el mouse libre.
-    if (!this.uiActive) {
-      this._updateCameraLook();
-      this._updatePlayer(dt);
+    // Durante la cinemática, SailCutscene maneja cámara + barco; si no, control normal
+    // (salvo con una UI abierta: diálogo/teclado, Belu congelada y mouse libre).
+    if (this.cutsceneActive) {
+      this.sailCutscene.update(dt);
+    } else {
+      if (!this.uiActive) {
+        this._updateCameraLook();
+        this._updatePlayer(dt);
+      }
+      this._updateCameraFollow();
     }
-    this._updateCameraFollow();
     this.world.update(dt);
     this.story.update(dt);
 

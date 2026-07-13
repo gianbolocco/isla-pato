@@ -147,9 +147,9 @@ export class RosaModel {
       this.head.add(hi);
     }
 
-    // Boquita.
-    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.008, 8, 14, Math.PI), M.pupil);
-    mouth.rotation.x = Math.PI; mouth.scale.z = 0.5; mouth.position.set(0, -0.14, 0.24);
+    // Boquita (justo debajo de la naricita).
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.007, 8, 14, Math.PI), M.pupil);
+    mouth.rotation.x = Math.PI; mouth.scale.z = 0.5; mouth.position.set(0, -0.075, 0.27);
     this.head.add(mouth);
 
     // Bigotes: 3 por lado.

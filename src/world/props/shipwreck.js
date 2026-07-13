@@ -199,13 +199,15 @@ export function buildShipwreck(x, y, z, rotY = 0) {
 
   // ---- Animación: pop de piezas + botadura (deslizar al agua) + cabeceo ----
   const anims = [];
-  let launching = false, launched = false, tL = 0, t = 0;
+  let launching = false, launched = false, tL = 0, t = 0, cinematic = false;
   let fromPos = null, fromRotZ = 0, toPos = null;
 
   const revealRibsHidden = () => { if (pieces[3].visible) ribs.visible = false; };
 
   const ship = {
     isLaunched: () => launched,
+    group3d: shipGroup,                    // grupo que se mueve (para la cinemática)
+    setCinematic(b) { cinematic = b; },    // true = deja de auto-actualizarse (lo maneja la cinemática)
 
     installPart(order) {
       const g = pieces[order];
@@ -227,6 +229,7 @@ export function buildShipwreck(x, y, z, rotY = 0) {
     },
 
     update(dt) {
+      if (cinematic) return;   // durante la cinemática el barco lo mueve SailCutscene
       t += dt;
       for (let i = anims.length - 1; i >= 0; i--) {
         const a = anims[i]; a.t += dt * 2.4;
