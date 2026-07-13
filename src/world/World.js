@@ -468,14 +468,11 @@ export class World {
       s.rotation.set(0, 0, 0);
       s.position.y = SEA_LEVEL;
       this._pirateFrozen = true;
-      const dcx = s.position.x + a.deck.x * SC, dcz = s.position.z + a.deck.z * SC;
-      const top = s.position.y + a.deck.y * SC;
-      this.colliders.push(new THREE.Box3().setFromCenterAndSize(   // piso de la cubierta
-        new THREE.Vector3(dcx, top - 0.25, dcz), new THREE.Vector3(a.deck.halfX * 2 * SC, 0.5, a.deck.halfZ * 2 * SC)));
-      const hx = a.deck.halfX * SC, hz = a.deck.halfZ * SC, wy = top + 1.0;
-      for (const [ox, oz, sx, sz] of [[hx, 0, 0.6, hz * 2], [-hx, 0, 0.6, hz * 2], [0, hz, hx * 2, 0.6], [0, -hz, hx * 2, 0.6]]) {
-        this.colliders.push(new THREE.Box3().setFromCenterAndSize(   // barandas (no caerse)
-          new THREE.Vector3(dcx + ox, wy, dcz + oz), new THREE.Vector3(sx, 2.0, sz)));
+      // Colisión de la cubierta (piso + barandas + muros), definida en local por el barco.
+      for (const [cx, cy, cz, hx, hy, hz] of a.colliders) {
+        this.colliders.push(new THREE.Box3().setFromCenterAndSize(
+          new THREE.Vector3(s.position.x + cx * SC, s.position.y + cy * SC, s.position.z + cz * SC),
+          new THREE.Vector3(hx * 2 * SC, hy * 2 * SC, hz * 2 * SC)));
       }
     }
     return this.pirateAnchorWorld('deckSpawn');
