@@ -148,6 +148,18 @@ export const BUNKER = {
   ],
 };
 
+// Isla 5 "Cala del Naufragio": Belu cruza el puente levadizo y llega a una cala con un
+// gran barco encallado. Ahí la espera NEMO (reencuentro emotivo) y un BOTE para navegar
+// hasta "El Pato Mareado". Textos en textos.js → nemo/bote. Ver game/ShipwreckIsland.js.
+export const NAUFRAGIO = {
+  nemo: { x: 432, z: -33, talkRadius: 3.6 },        // entre los restos del naufragio
+  boat: { x: 448, z: -26, y: 0.0, readRadius: 4.2 }, // en la orilla, apuntando al mar
+  nemoName: TEXTOS.nemo.nombre,
+  reunion: TEXTOS.nemo.reencuentro,
+  boatTitle: TEXTOS.bote.titulo,
+  boatMessage: TEXTOS.bote.mensaje,
+};
+
 // Avatar 3D con rig (Ready Player Me). Si `enabled` está en true y el .glb existe,
 // se usa el avatar con animación esquelética; si no, cae en el modelo de primitivas.
 // Ajustar `scale`/`yOffset`/`yawOffset` para calzar el avatar sobre el collider.

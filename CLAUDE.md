@@ -35,7 +35,8 @@ npm run build    # build de producción -> dist/
 - **`world/World.js`** — orquestador: islas (terreno con altura vía `groundHeightAt`), mar, cielo, luces; ubica los props. `getMapData()` para el minimapa. Usa `_place(built)` para componer builders.
 - **`world/props/`** — objetos reutilizables, cada builder devuelve `{ group, colliders, ... }` o un `THREE.Group`:
   - `nature.js` (palmeras/pinos/nubes/arbustos), `beach.js` (sombrilla/reposera/pelota/mesa/parrilla),
-  - `Cabin.js` (cabaña habitable + muebles), `Dock.js` (muelle), `structures.js` (puentes/plataformas).
+  - `Cabin.js` (cabaña habitable + muebles), `Dock.js` (muelle), `structures.js` (puentes/plataformas),
+    `boat.js` (bote de remos de la Cala del Naufragio).
 - `world/{meshUtils,textures}.js` — `meshFrom` y texturas procedurales (CanvasTexture).
 - `world/Props.js` — cargador de props `.glb` externos (Poly Pizza/Kenney), ver `PROPS`.
 - `objects/Bottle.js` — la botella del mensaje de la intro.

@@ -10,6 +10,7 @@ import { InteractionManager } from './InteractionManager.js';
 import { CaboRoca } from './CaboRoca.js';
 import { FishingIsland } from './FishingIsland.js';
 import { BunkerIsland } from './BunkerIsland.js';
+import { ShipwreckIsland } from './ShipwreckIsland.js';
 import { Checkpoints } from './Checkpoints.js';
 
 // Máquina de estados de la historia (checkpoints narrativos). Cada paso tiene un
@@ -37,6 +38,7 @@ export class Story {
     this.caboRoca = new CaboRoca(scene, world, player, this.dialogue, this.keypad, ui, this.interaction);
     this.fishingIsland = new FishingIsland(scene, world, this.dialogue, ui, this.interaction);
     this.bunker = new BunkerIsland(scene, world, this.interaction);
+    this.shipwreck = new ShipwreckIsland(scene, world, this.messageBox, this.dialogue, ui, this.interaction);
     this.checkpoints = new Checkpoints(scene, player, world.checkpoints || []);
 
     // Botella con el mensaje de Gian, en el muelle (intro).
@@ -134,11 +136,23 @@ export class Story {
         update: () => this.bunker.solved,
       },
       {
-        objective: '¡Puente levadizo abajo! Cruzá hacia la isla del naufragio 🏴‍☠️',
+        objective: '¡Puente levadizo abajo! Cruzá hacia la Cala del Naufragio 🏴‍☠️',
         update: () => this.player.position.x > this.world.drawbridgeEndX + 2,
       },
       {
-        objective: 'La isla del naufragio te espera… (próximamente) ⚓',
+        objective: 'Llegaste a la Cala del Naufragio… ¿escuchás ese ladrido? 🐶',
+        update: () => this.player.position.x > 424,
+      },
+      {
+        objective: 'Seguí el ladrido entre los restos y saludá a quien te encontró (E) 🐶',
+        update: () => this.shipwreck.talked,
+      },
+      {
+        objective: '¡Nemo encontró un bote! Subite para ir a El Pato Mareado ⛵',
+        update: () => this.shipwreck.aboard,
+      },
+      {
+        objective: 'Rumbo a El Pato Mareado, a rescatar a tu pato… ¡continuará! 🦆🏴‍☠️',
         update: () => false,
       },
     ];
@@ -162,6 +176,7 @@ export class Story {
     this.caboRoca.update(dt);           // idle del loro
     this.fishingIsland.update(dt);      // idle de Alejandro
     this.bunker.update(dt);             // parpadeo del circuito
+    this.shipwreck.update(dt);          // idle de Nemo (cola que menea)
     this.checkpoints.update();          // respawn en el último checkpoint
 
     const s = this._step;

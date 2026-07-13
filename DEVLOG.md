@@ -2,6 +2,21 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-12 — Isla 5 "Cala del Naufragio": reencuentro con Nemo + el bote al barco
+- **Nueva isla jugable (ISLANDS[4], `cx 442, cz -36`):** cala soleada con un barco
+  **encallado**, unida a la plataforma de llegada del puente levadizo por un puente
+  diagonal (`buildBridge`). Bioma tropical normal (verde + arena), palmeras/arbustos/rocas.
+- **Reencuentro con Nemo** (`game/ShipwreckIsland.js`, calcado de `FishingIsland`): Nemo
+  espera entre los restos; al saludarlo con **E** se abre un diálogo emotivo (`TEXTOS.nemo`)
+  y su cola menea más fuerte. Modelo `NemoModel` reutilizado (sin toon, como los otros NPC).
+- **El bote** (`world/props/boat.js`, `makeBoat`): botecito de remos (media caña + regala +
+  bancadas + 2 remos) varado en la orilla, **apuntando al mar**. Recién se puede subir
+  DESPUÉS de encontrar a Nemo → muestra el mensaje de cierre (`TEXTOS.bote`, "continuará").
+- **Historia** (`Story`): 4 pasos nuevos (llegar a la cala → oír el ladrido → saludar a
+  Nemo → subir al bote → "rumbo a El Pato Mareado, ¡continuará!") reemplazan el placeholder.
+- **Checkpoints** de llegada al Búnker y a la Cala (una caída ya no te manda a la Cala del
+  Pescador). Config en `config.NAUFRAGIO`; textos en `textos.js → nemo/bote`.
+
 ## 2026-07-11 — Todos los textos en un solo archivo editable (`textos.js`)
 - **`src/textos.js`** (nuevo): centraliza TODO el texto del juego con encabezado de "cómo
   editar" — `intro` (tarjetas), `botellaIntro`, `botellaBunker`, `juancho` (nombre, saludo,

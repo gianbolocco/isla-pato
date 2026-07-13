@@ -87,4 +87,26 @@ export const TEXTOS = {
     ],
   },
 
+  // --- NEMO, el caniche de Belu (Cala del Naufragio, isla 5). Reencuentro emotivo. ---
+  nemo: {
+    nombre: 'Nemo',
+    reencuentro: [
+      '¡GUAU GUAU! 🐶 <i>Un borrón blanco salta de entre los restos del naufragio…</i>',
+      '¡Es <b>Nemo</b>! Tu caniche, moviendo la colita a mil y pegando saltos de alegría. 💛',
+      '<i>Te llena la cara de lengüetazos.</i> Él también estuvo buscando a Gian por toda la isla.',
+      '¡GUAU! Nemo sale corriendo hacia la orilla y te mira: olfateó algo… <b>¡un bote!</b> ⛵',
+      'Con Nemo de compañero ya no estás sola. ¡Vamos a rescatar a tu pato, Belu! 🦆',
+    ],
+  },
+
+  // --- EL BOTE (Cala del Naufragio): al subir, arranca el rumbo al barco pirata. ---
+  bote: {
+    titulo: 'El bote ⛵',
+    mensaje:
+      'Un bote de remos varado en la arena, apuntando al mar abierto. A lo lejos se recorta ' +
+      '<b>El Pato Mareado</b>, el barco del <b>Capitán Lulu</b>, con Gian en algún lado. 🏴‍☠️<br><br>' +
+      'Subís con Nemo y agarrás los remos. Es hora de navegar hasta el barco y <b>rescatar a tu pato</b>.<br><br>' +
+      '<i>— Continuará: el abordaje a El Pato Mareado —</i>',
+  },
+
 };

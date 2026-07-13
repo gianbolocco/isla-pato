@@ -11,9 +11,10 @@ import { buildDock } from './props/Dock.js';
 import { buildBrokenBridge, buildBridge, buildWoodPlatform, buildRockPlatform } from './props/structures.js';
 import { buildGate } from './props/Gate.js';
 import { makeDrawbridge, makeGantry, makeCRT } from './props/bunker.js';
+import { makeBoat } from './props/boat.js';
 import { makePirateShip } from '../objects/PirateShip.js';
 import { makeLighthouse } from '../objects/Lighthouse.js';
-import { QUIZ, BUNKER } from '../config.js';   // parrotPos: zona a despejar de árboles; BUNKER: isla 4
+import { QUIZ, BUNKER, NAUFRAGIO } from '../config.js';   // parrotPos: zona a despejar; BUNKER/NAUFRAGIO: islas 4 y 5
 
 // El mundo: orquesta las islas (terreno con altura, playa, nieve), el mar, cielo,
 // luces y la ubicación de todos los props (que viven en ./props/*). Mantiene la
@@ -37,6 +38,7 @@ const ISLANDS = [
   { name: 'Cabo Roca', cx: 118, cz: 22, base: 38, amp: 6, freq: 4, phase: 1.3, rocky: true },
   { name: 'Cala del Pescador', cx: 240, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },  // lejos de Cabo Roca (puente largo)
   { name: 'El Búnker', cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0, bunker: true },  // isla 4: puzzle lógico
+  { name: 'Cala del Naufragio', cx: 442, cz: -36, base: 25, amp: 6, freq: 5, phase: 0.8 },  // isla 5: Nemo + el bote
 ];
 
 function islandRadius(isl, a) {
@@ -136,6 +138,7 @@ export class World {
     this._buildFishingIsland(); // isla 3: muelle + campamento de pesca de Alejandro
     this._buildParkour();       // isla 3 -> isla 4: puente destruido + parkour sobre el agua
     this._buildBunkerIsland();  // isla 4: puente levadizo + ambiente retro-tech
+    this._buildShipwreckIsland(); // isla 5: cala con naufragio + Nemo + el bote
     this._buildPirateShip();
   }
 
@@ -287,6 +290,56 @@ export class World {
   get drawbridgePivot() { return this._dbPivot || null; }
   get drawbridgeEndX() { return this._dbEndX || 0; }
   lowerDrawbridge() { if (this._drawbridge) this._drawbridge.lower(); }
+
+  // Isla 5 "Cala del Naufragio": tras el puente levadizo, una cala soleada con un barco
+  // encallado. Un puente la une a la plataforma de llegada del Búnker. Acá viven el
+  // naufragio, el bote (visual) y la vegetación; a Nemo y la interacción los pone
+  // game/ShipwreckIsland.js. Checkpoints de llegada para no rehacer todo si te caés.
+  _buildShipwreckIsland() {
+    const isl = ISLANDS[4];
+    const cx = isl.cx, cz = isl.cz;
+
+    // Puente desde la plataforma de llegada del puente levadizo hasta la orilla oeste.
+    const landX = this._dbEndX + 1.4, landZ = this._dbPivot.z;   // plataforma de llegada del Búnker
+    const shoreX = cx - islandRadius(isl, Math.PI) + 1.5;
+    this._place(buildBridge(landX, landZ, shoreX, cz));
+
+    // Gran barco encallado en la playa (la "cala del naufragio") + restos alrededor.
+    this._place(buildWreck(cx - 4, 1.6, cz - 3));
+    for (const [dx, dz] of [[-11, 6], [-6, 9], [3, 11], [-13, -2]]) {
+      this._place(buildBarrel(cx + dx, 0.9, cz + dz));
+    }
+
+    // El bote de remos en la orilla, apuntando al mar abierto (hacia +Z, donde está el barco).
+    const b = NAUFRAGIO.boat;
+    const boat = makeBoat();
+    boat.position.set(b.x, b.y, b.z);
+    boat.rotation.y = Math.atan2(b.x - cx, b.z - cz);   // proa (+Z) hacia afuera de la isla
+    this.scene.add(boat);
+
+    // Vegetación tropical (cala alegre) + algunas rocas de orilla, despejando Nemo/bote.
+    const avoid = (x, z) =>
+      Math.hypot(x - NAUFRAGIO.nemo.x, z - NAUFRAGIO.nemo.z) < 4 ||
+      Math.hypot(x - b.x, z - b.z) < 4;
+    this._scatter(isl, 8, 0.25, 0.8, (x, z) => {
+      const palm = makePalm();
+      palm.position.set(x, terrainHeight(isl, x, z), z);
+      palm.rotation.y = Math.random() * Math.PI * 2;
+      this.scene.add(palm);
+    }, avoid);
+    this._scatter(isl, 8, 0.3, 0.85, (x, z) => this.scene.add(makeBush(x, z)), avoid);
+    const rmats = stoneMats();
+    this._scatter(isl, 10, 0.15, 0.85, (x, z, i) => {
+      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, 0.5 + Math.random() * 1.1, rmats[i % 3], 0.7));
+    }, avoid);
+
+    // Checkpoints: al llegar al Búnker (tras el parkour) y al pisar la cala, para que una
+    // caída no te mande de vuelta a la Cala del Pescador. Se agregan antes de crear Story.
+    if (this.checkpoints) {
+      this.checkpoints.push({ x: 340, y: 1.2, z: -16 });        // llegada al Búnker
+      this.checkpoints.push({ x: shoreX + 3, y: 1.2, z: cz });  // llegada a la Cala del Naufragio
+    }
+  }
 
   // "El Pato Mareado" lejos en el mar (dirección +Z desde el muelle): la meta.
   _buildPirateShip() {

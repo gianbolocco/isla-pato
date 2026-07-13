@@ -45,7 +45,7 @@ No estamos atados a las 3 islas actuales: se reskinnean y se agregan escenarios.
 | 2 | 🪨 **Cabo Roca** (rocosa, árboles, faro) | **Loro Juancho**: quiz sobre Gian → clave → **reja con teclado** | ✅ |
 | 3 | 🎣 **Cala del Pescador** | **Alejandro** (papá): diálogo + **parkour** sobre el agua (Lulu destrozó el puente) | ✅ |
 | 4 | 🔌 **El Búnker** (ruina retro-tech, atardecer tormentoso) | **Circuito de compuertas lógicas** (AND/OR/NOT): mover palancas para prender la SALIDA y bajar el **puente levadizo** (guiño a ingeniería en informática) | ✅ |
-| 5 | 🐾 **Cala Naufragio** (a diseñar) | Aparece **Nemo** (sorpresa emotiva) + el **bote** al barco pirata | 🏗️ pendiente |
+| 5 | 🐾 **Cala del Naufragio** (barco encallado, cala soleada) | Aparece **Nemo** (reencuentro emotivo, tecla E) + subir al **bote** para navegar al barco pirata | ✅ |
 | — | ⚓ **El Pato Mareado (final)** | Abordar, liberar a Gian | 🏗️ barco (landmark lejano) |
 
 Personajes/NPC: **Juancho** (loro), **Alejandro** ("pitu", papá pescador), **Capitán Lulu**
