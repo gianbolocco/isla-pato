@@ -62,13 +62,22 @@ export class DevPanel {
     };
     el.appendChild(unlock);
 
+    // Saltar al FINAL (abordaje del barco pirata: cañonazo → llave → liberar a Gian).
+    const finale = document.createElement('button');
+    finale.innerHTML = '<span style="opacity:.6">9</span>&nbsp; 🏴‍☠️ Final (barco pirata)';
+    finale.style.cssText = this._btnCss() + 'margin-top:6px;';
+    finale.onmouseenter = () => (finale.style.background = 'rgba(90,140,220,0.35)');
+    finale.onmouseleave = () => (finale.style.background = 'rgba(255,255,255,0.06)');
+    finale.onclick = () => { if (this.game.finale) this.game.finale.start(); };
+    el.appendChild(finale);
+
     // Info en vivo: coordenadas + objetivo actual.
     this.info = document.createElement('div');
     this.info.style.cssText = 'font-size:11px; line-height:1.5; margin-top:8px; opacity:.8; word-break:break-word;';
     el.appendChild(this.info);
 
     const hint = document.createElement('div');
-    hint.textContent = 'Teclas 1–5 · 0 inicio · ` oculta';
+    hint.textContent = 'Teclas 1–5 islas · 9 final · 0 inicio · ` oculta';
     hint.style.cssText = 'font-size:10px; margin-top:7px; opacity:.5;';
     el.appendChild(hint);
 
