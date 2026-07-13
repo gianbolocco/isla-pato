@@ -18,11 +18,28 @@ export class DevPanel {
   constructor(game) {
     this.game = game;
     this._build();
+    this._buildToggle();
     this._bindKeys();
     this._tick();
   }
 
   _warp(key) { this.game.story.devWarp(key); }
+
+  // Botón ESCONDIDO: una zona discreta casi invisible en la esquina superior izquierda que
+  // despliega/oculta el panel (para no mostrarlo al compartir el juego). También la tecla `.
+  _buildToggle() {
+    const t = document.createElement('div');
+    t.title = 'dev';
+    Object.assign(t.style, {
+      position: 'fixed', top: '0', left: '0', width: '28px', height: '28px',
+      zIndex: '10000', cursor: 'pointer', borderRadius: '0 0 8px 0',
+      background: 'rgba(255,255,255,0.04)',
+    });
+    t.onmouseenter = () => (t.style.background = 'rgba(120,160,220,0.35)');
+    t.onmouseleave = () => (t.style.background = 'rgba(255,255,255,0.04)');
+    t.onclick = () => { this.el.style.display = this.el.style.display === 'none' ? 'block' : 'none'; };
+    document.body.appendChild(t);
+  }
 
   _build() {
     const el = document.createElement('div');
@@ -81,6 +98,7 @@ export class DevPanel {
     hint.style.cssText = 'font-size:10px; margin-top:7px; opacity:.5;';
     el.appendChild(hint);
 
+    el.style.display = 'none';   // arranca OCULTO; se abre con el botón escondido o la tecla `
     document.body.appendChild(el);
     this.el = el;
   }
