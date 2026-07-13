@@ -5,6 +5,10 @@
 // para editarlos fácil. Acá abajo solo se enganchan a las constantes de gameplay.
 import { TEXTOS } from './textos.js';
 
+// 🛠️ Panel de desarrollo (temporal): teletransporta por las islas para testear sin
+// jugar todo. Poné en false (o borralo con ui/DevPanel.js + main.js) antes de publicar.
+export const DEBUG = true;
+
 export const PHYSICS = {
   gravity: -34,          // aceleración hacia abajo
   maxFallSpeed: -40,     // velocidad terminal de caída

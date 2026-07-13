@@ -1,6 +1,8 @@
 import { Game } from './core/Game.js';
 import { Minimap } from './ui/Minimap.js';
 import { StartScreen } from './ui/StartScreen.js';
+import { DevPanel } from './ui/DevPanel.js';
+import { DEBUG } from './config.js';
 
 // Punto de entrada. Crea el juego, muestra el menú + intro narrada, y conecta el overlay
 // de "click para jugar".
@@ -44,3 +46,6 @@ setInterval(() => {
   const y = game.player.position.y.toFixed(1);
   hud.textContent = `altura: ${y} m`;
 }, 100);
+
+// 🛠️ Panel de desarrollo (temporal): teletransporte por islas. Se apaga con DEBUG=false.
+if (DEBUG) new DevPanel(game);

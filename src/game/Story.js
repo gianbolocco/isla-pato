@@ -159,6 +159,44 @@ export class Story {
   }
 
   get _step() { return this._steps[this._i]; }
+  get stepIndex() { return this._i; }
+  get objectiveText() {
+    const s = this._step;
+    return s ? (typeof s.objective === 'function' ? s.objective() : s.objective) : '¡Fin!';
+  }
+
+  // --- DEV (panel temporal, ui/DevPanel.js): saltar a una isla ---
+  // Destraba el camino hasta ese punto (idempotente), teletransporta a Belu con los pies
+  // sobre el suelo, fija el checkpoint ahí y sincroniza el objetivo del HUD. Las islas
+  // que necesitan un paso previo (puente/reja/levadizo) se abren solas.
+  devWarp(key) {
+    const targets = {
+      pato:      { step: 0,  x: 0,   z: -8,  unlock: 0 },
+      caboRoca:  { step: 4,  x: 84,  z: 22,  unlock: 1 },  // requiere puente reparado
+      cala:      { step: 7,  x: 224, z: 0,   unlock: 2 },  // + reja abierta
+      bunker:    { step: 9,  x: 340, z: -16, unlock: 2 },  // (el parkour se saltea al teleportar)
+      naufragio: { step: 12, x: 424, z: -36, unlock: 3 },  // + puente levadizo bajo
+    };
+    const t = targets[key];
+    if (!t) return;
+
+    if (t.unlock >= 1) this.world.repairBridge();
+    if (t.unlock >= 2) this.world.openGate();
+    if (t.unlock >= 3) this.world.lowerDrawbridge();
+
+    const gy = this.world.groundHeightAt(t.x, t.z) ?? 0;
+    const y = gy + this.player.half.y + 0.1;
+    this.player.position.set(t.x, y, t.z);
+    this.player.velocity.set(0, 0, 0);
+    this.player.checkpoint = this.player.position.clone();
+
+    this.setStep(t.step);
+  }
+
+  setStep(i) {
+    this._i = Math.max(0, Math.min(i, this._steps.length - 1));
+    this._refreshHud();
+  }
 
   _refreshHud() {
     const s = this._step;

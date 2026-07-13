@@ -2,6 +2,17 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-12 — Panel de desarrollo temporal (teletransporte por islas)
+- **`ui/DevPanel.js`** (nuevo, TEMPORAL): panel arriba-derecha con un botón por isla +
+  "destrabar todo" + coords/objetivo en vivo. **Atajos 1–5** (y 0 = inicio) que funcionan
+  incluso con el mouse capturado; `` ` `` muestra/oculta el panel. No warpea con un
+  diálogo/teclado abierto (evita chocar con la reja).
+- **`Story.devWarp(key)`**: destraba el camino hasta esa isla (repara puente / abre reja /
+  baja levadizo, idempotente), teletransporta a Belu con los pies en el suelo, fija el
+  checkpoint ahí y sincroniza el objetivo del HUD (`setStep`). + getters `objectiveText`.
+- **Flag `config.DEBUG`** (true): prende/apaga el panel desde `main.js`. Poner en false
+  (o borrar `DevPanel.js` + su uso) antes de publicar.
+
 ## 2026-07-12 — Isla 5 "Cala del Naufragio": reencuentro con Nemo + el bote al barco
 - **Nueva isla jugable (ISLANDS[4], `cx 442, cz -36`):** cala soleada con un barco
   **encallado**, unida a la plataforma de llegada del puente levadizo por un puente
