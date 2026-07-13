@@ -204,9 +204,7 @@ export function buildShipwreck(x, y, z, rotY = 0) {
 
   const revealRibsHidden = () => { if (pieces[3].visible) ribs.visible = false; };
 
-  return {
-    group: root,
-    colliders,
+  const ship = {
     isLaunched: () => launched,
 
     installPart(order) {
@@ -250,4 +248,6 @@ export function buildShipwreck(x, y, z, rotY = 0) {
       }
     },
   };
+
+  return { group: root, colliders, ship };
 }
