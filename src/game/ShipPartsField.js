@@ -2,7 +2,7 @@ import { makeMaterial } from '../world/props/shipParts.js';
 import { NAUFRAGIO } from '../config.js';
 
 // Los MATERIALES del barco desperdigados por la Cala del Naufragio (isla 5). La historia
-// decide cuándo aparecen (spawn), tras hablar con Nemo. Se juntan por cercanía (como los
+// decide cuándo aparecen (spawn), tras hablar con Rosa. Se juntan por cercanía (como los
 // tablones), apoyados a la altura real del terreno (la isla tiene lomas). Lleva el conteo
 // TOTAL y POR TIPO (madera/tela/soga/brea) para el HUD, las estaciones de reparación y la Story.
 export class ShipPartsField {

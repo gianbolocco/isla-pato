@@ -2,6 +2,16 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-13 — Rosa (gata) reemplaza a Nemo como compañera
+- **Nuevo `entities/RosaModel.js`**: gata chibi blanca y negra (bicolor/esmoquin) — cuerpo blanco
+  con manchas negras, orejas puntiagudas, ojos verdes, naricita rosa, bigotes y cola larga que se
+  mueve (swish). Misma interfaz que los demás personajes (`object3d` + `update(dt, speed01)`).
+- **Nemo eliminado** del juego (se borró `entities/NemoModel.js`). En la Cala del Naufragio ahora
+  la que espera y da la misión es **Rosa** (maullido en vez de ladrido). Renombrado en todo el
+  código y textos: `config.NAUFRAGIO.rosa/rosaName`, `textos.js → rosa`, `game/ShipwreckIsland.js`
+  (`RosaModel`, `_greetRosa`, `tailPhase`), objetivos de `Story`, opción del quiz de Juancho
+  (“Rosa la gata”), y `World`. Docs (`GAME_DESIGN`, `CLAUDE`) actualizados: Rosa es la compañera.
+
 ## 2026-07-12 — Cala del Naufragio v2: barco carabela realista al agua + isla más rica + misión "reparar con materiales"
 - **Barco realista** (`world/props/shipwreck.js` reescrito): carabela/balandra low-poly legible
   (casco con proa en punta, tracas, alcázar de popa, bauprés, cubierta ABIERTA) en vez del

@@ -30,7 +30,7 @@ npm run build    # build de producción -> dist/
 - `core/Input.js` — teclado + mouse (pointer lock).
 - `core/toon.js` — toon shading (gradiente + `toonify`) para los personajes.
 - `entities/Player.js` — controlador de Belu (movimiento, gravedad, salto, colisiones).
-- `entities/{BeluModel,GianluccaModel,NemoModel}.js` — modelos 3D chibi con primitivas.
+- `entities/{BeluModel,GianluccaModel,RosaModel}.js` — modelos 3D chibi con primitivas.
 - `entities/BeluAvatar.js` — carga un avatar `.glb` con rig (opcional, `AVATAR.enabled`).
 - **`world/World.js`** — orquestador: islas (terreno con altura vía `groundHeightAt`), mar, cielo, luces; ubica los props. `getMapData()` para el minimapa. Usa `_place(built)` para componer builders.
 - **`world/props/`** — objetos reutilizables, cada builder devuelve `{ group, colliders, ... }` o un `THREE.Group`:
@@ -72,7 +72,7 @@ npm run build    # build de producción -> dist/
 
 ## Historia y diseño
 Ver `GAME_DESIGN.md` — biblia del juego: **"Belu al Rescate"** (aventura pirata divertida;
-Belu rescata a Gian —"el pato"— del Capitán Lulu, con Nemo de compañero).
+Belu rescata a Gian —"el pato"— del Capitán Lulu, con Rosa (su gata) de compañera).
 
 ## Notas de sesión
 Ver `DEVLOG.md` para el registro cronológico de avances y decisiones.

@@ -64,7 +64,7 @@ export const TEXTOS = {
       },
       {
         pregunta: '¿Quién se llevó a Gian en el barco pirata?',
-        opciones: ['El Capitán Lulu', 'Un delfín', 'Nemo el perro'],
+        opciones: ['El Capitán Lulu', 'Un delfín', 'Rosa la gata'],
         correcta: 0,
       },
       {
@@ -87,17 +87,17 @@ export const TEXTOS = {
     ],
   },
 
-  // --- NEMO, el caniche de Belu (Cala del Naufragio, isla 5). Reencuentro + misión. ---
-  nemo: {
-    nombre: 'Nemo',
+  // --- ROSA, la gata blanca y negra de Belu (Cala del Naufragio, isla 5). Reencuentro + misión. ---
+  rosa: {
+    nombre: 'Rosa',
     reencuentro: [
-      '¡GUAU GUAU! 🐶 <i>Un borrón blanco salta de entre las rocas…</i>',
-      '¡Es <b>Nemo</b>! Tu caniche, moviendo la colita a mil y pegando saltos de alegría. 💛',
-      '<i>Te llena la cara de lengüetazos.</i> Estuvo cuidando algo grande en la orilla…',
-      '¡GUAU! Te arrastra hasta unas rocas: un <b>barco encallado</b>, hecho pedazos. ⛵💥',
+      '¡Miau! 🐱 <i>Entre las rocas asoma una gatita blanca y negra…</i>',
+      '¡Es <b>Rosa</b>! Tu gata, que se restriega contra las piernas de Belu ronroneando. 💛',
+      '<i>Te da cabezazos cariñosos.</i> Estuvo vigilando algo grande en la orilla…',
+      '¡Miau! Te guía hasta unas rocas: un <b>barco encallado</b>, hecho pedazos. ⛵💥',
       'Con ese barco podrías navegar hasta El Pato Mareado… pero está todo roto.',
       'Para arreglarlo hay que juntar <b>materiales</b> por la isla: madera 🪵, tela 🧵, ' +
-        'soga 🪢 y brea 🛢️. ¡A buscarlos, Belu! 🦆',
+        'soga 🪢 y brea 🛢️. ¡A buscarlos, Belu! 🐾',
     ],
   },
 
@@ -117,7 +117,7 @@ export const TEXTOS = {
     mensaje:
       'El barco quedó como nuevo, meciéndose junto a las rocas. A lo lejos se recorta ' +
       '<b>El Pato Mareado</b>, el barco del <b>Capitán Lulu</b>, con Gian en algún lado. 🏴‍☠️<br><br>' +
-      'Subís con Nemo y tomás el timón. Es hora de navegar y <b>rescatar a tu pato</b>.<br><br>' +
+      'Subís con Rosa y tomás el timón. Es hora de navegar y <b>rescatar a tu pato</b>.<br><br>' +
       '<i>— Continuará: el abordaje a El Pato Mareado —</i>',
   },
 

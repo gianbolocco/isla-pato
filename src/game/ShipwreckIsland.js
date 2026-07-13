@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { NemoModel } from '../entities/NemoModel.js';
+import { RosaModel } from '../entities/RosaModel.js';
 import { playLines } from './conversation.js';
 import { ShipPartsField } from './ShipPartsField.js';
 import { NAUFRAGIO } from '../config.js';
 
-// Misión de la Isla 5 (Cala del Naufragio): Belu reencuentra a NEMO, junta MATERIALES por la
-// isla (madera/tela/soga/brea) y después REPARA el barco encallado en 4 ESTACIONES (parchar el
-// casco → cubierta+timón → vela → calafatear+botar). Al botar, el barco se desliza al agua;
+// Misión de la Isla 5 (Cala del Naufragio): Belu reencuentra a ROSA (su gata), junta MATERIALES
+// por la isla (madera/tela/soga/brea) y después REPARA el barco encallado en 4 ESTACIONES (parchar
+// el casco → cubierta+timón → vela → calafatear+botar). Al botar, el barco se desliza al agua;
 // después Belu EMBARCA. Expone: talked, allCollected, tally, stationLabel, launched, aboard.
 
 export class ShipwreckIsland {
@@ -24,12 +24,12 @@ export class ShipwreckIsland {
 
     const N = world.naufragio;
 
-    // Nemo cerca de la llegada, mirando a la orilla oeste.
-    const gy = world.groundHeightAt(N.nemo.x, N.nemo.z) ?? 0;
-    this.nemo = new NemoModel();
-    this.nemo.object3d.position.set(N.nemo.x, gy, N.nemo.z);
-    this.nemo.object3d.rotation.y = -Math.PI / 2;
-    scene.add(this.nemo.object3d);
+    // Rosa cerca de la llegada, mirando a la orilla oeste.
+    const gy = world.groundHeightAt(N.rosa.x, N.rosa.z) ?? 0;
+    this.rosa = new RosaModel();
+    this.rosa.object3d.position.set(N.rosa.x, gy, N.rosa.z);
+    this.rosa.object3d.rotation.y = -Math.PI / 2;
+    scene.add(this.rosa.object3d);
 
     this.parts = new ShipPartsField(scene, world);
 
@@ -44,13 +44,13 @@ export class ShipwreckIsland {
     });
     this._t = 0;
 
-    // 1) Saludar a Nemo → arranca la misión (aparecen los materiales).
+    // 1) Saludar a Rosa → arranca la misión (aparecen los materiales).
     interaction.add({
-      pos: () => N.nemo,
-      radius: NAUFRAGIO.nemo.talkRadius,
-      prompt: () => `Apretá <b>E</b> para saludar a ${NAUFRAGIO.nemoName} 🐶`,
+      pos: () => N.rosa,
+      radius: NAUFRAGIO.rosa.talkRadius,
+      prompt: () => `Apretá <b>E</b> para saludar a ${NAUFRAGIO.rosaName} 🐱`,
       enabled: () => !this.talked,
-      onInteract: () => this._greetNemo(),
+      onInteract: () => this._greetRosa(),
     });
 
     // 2) Estaciones de reparación (secuenciales; requieren todos los materiales juntados).
@@ -90,8 +90,8 @@ export class ShipwreckIsland {
 
   update(dt) {
     this._t += dt;
-    this.nemo.update(dt);
-    if (this.talked) this.nemo.wagPhase += dt * 4;
+    this.rosa.update(dt);
+    if (this.talked) this.rosa.tailPhase += dt * 4;   // más movida cuando está contenta
     this.parts.update(dt, this.player.position);
     // Marcador de la estación actual: visible + flotando/girando.
     for (let i = 0; i < this._markers.length; i++) {
@@ -102,8 +102,8 @@ export class ShipwreckIsland {
     }
   }
 
-  _greetNemo() {
-    playLines(this.dialogue, this.ui, NAUFRAGIO.nemoName, NAUFRAGIO.reunion, () => {
+  _greetRosa() {
+    playLines(this.dialogue, this.ui, NAUFRAGIO.rosaName, NAUFRAGIO.reunion, () => {
       this.talked = true;
       this.parts.spawn(this.world.naufragio.materialItems);   // aparecen los materiales
     });

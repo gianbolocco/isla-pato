@@ -153,10 +153,10 @@ export const BUNKER = {
 };
 
 // Isla 5 "Cala del Naufragio": la isla MÁS grande, rocosa y con montañas (bordes de playa como
-// Isla Pato). Belu reencuentra a NEMO, junta MATERIALES (madera/tela/soga/brea) desperdigados
+// Isla Pato). Belu reencuentra a ROSA (su gata), junta MATERIALES (madera/tela/soga/brea) desperdigados
 // por la isla y después REPARA el barco encallado en 4 ESTACIONES; al calafatear con brea el
 // barco se BOTA (se desliza al agua) y Belu zarpa hacia "El Pato Mareado". Posiciones dx/dz
-// relativas al centro de la isla (ISLANDS[4]). Textos en textos.js → nemo/barcoReparar/barcoListo.
+// relativas al centro de la isla (ISLANDS[4]). Textos en textos.js → rosa/barcoReparar/barcoListo.
 const _STATION_META = [
   { id: 'casco',    installs: [1, 2],    dx: -1, dz: -3.6, y: 1.2 },   // parchar el casco (madera)
   { id: 'cubierta', installs: [3, 4, 8], dx: -3, dz: 0.0,  y: 1.7 },   // cubierta + timón + rueda
@@ -164,15 +164,15 @@ const _STATION_META = [
   { id: 'botar',    installs: [],        dx: 4,  dz: 3.6,  y: 1.2, launch: true }, // brea → al agua
 ];
 export const NAUFRAGIO = {
-  nemo: { dx: -34, dz: 2, talkRadius: 3.8 },     // cerca de la llegada (orilla oeste)
+  rosa: { dx: -34, dz: 2, talkRadius: 3.8 },     // cerca de la llegada (orilla oeste)
   ship: { dx: 48, dz: 8, rotY: -0.5 },           // encallado en las rocas de la orilla este
   waterOffset: 18,                               // cuánto sale hacia el mar al botar
   waterY: -0.9,                                  // altura de flotación (≈ seaLevel + francobordo)
   boardRadius: 8.0,                              // radio para reparar/embarcar junto al barco
   stationRadius: 4.5,                            // radio de cada estación de reparación
   pickupRadius: 2.8,                             // cercanía para juntar cada material
-  nemoName: TEXTOS.nemo.nombre,
-  reunion: TEXTOS.nemo.reencuentro,
+  rosaName: TEXTOS.rosa.nombre,
+  reunion: TEXTOS.rosa.reencuentro,
   boardTitle: TEXTOS.barcoListo.titulo,
   boardMessage: TEXTOS.barcoListo.mensaje,
   // Materiales a juntar. dx/dz relativos al centro; algunos en picos (parkour). `count` = cuántos.

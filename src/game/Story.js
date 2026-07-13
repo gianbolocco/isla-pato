@@ -140,11 +140,11 @@ export class Story {
         update: () => this.player.position.x > this.world.drawbridgeEndX + 2,
       },
       {
-        objective: 'Llegaste a la Cala del Naufragio… ¿escuchás ese ladrido? 🐶',
+        objective: 'Llegaste a la Cala del Naufragio… ¿escuchás ese maullido? 🐱',
         update: () => this.player.position.x > (this.world.naufragio?.arrival.x ?? 414),
       },
       {
-        objective: 'Seguí el ladrido y saludá a quien te encontró (E) 🐶',
+        objective: 'Seguí el maullido y saludá a quien te encontró (E) 🐱',
         update: () => this.shipwreck.talked,
       },
       {
@@ -226,7 +226,7 @@ export class Story {
     this.caboRoca.update(dt);           // idle del loro
     this.fishingIsland.update(dt);      // idle de Alejandro
     this.bunker.update(dt);             // parpadeo del circuito
-    this.shipwreck.update(dt);          // idle de Nemo (cola que menea)
+    this.shipwreck.update(dt);          // idle de Rosa (cola que se mueve)
     this.checkpoints.update();          // respawn en el último checkpoint
 
     const s = this._step;

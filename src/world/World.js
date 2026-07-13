@@ -40,7 +40,7 @@ const ISLANDS = [
   { name: 'Cala del Pescador', cx: 240, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },  // lejos de Cabo Roca (puente largo)
   { name: 'El Búnker', cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0, bunker: true },  // isla 4: puzzle lógico
   // Isla 5: la MÁS grande, rocosa y con montañas (lomas empinadas). Bordes de playa como
-  // Isla Pato. `hills` = relieve caminable/empinado (ver hillsHeight). Nemo + barco encallado.
+  // Isla Pato. `hills` = relieve caminable/empinado (ver hillsHeight). Rosa + barco encallado.
   {
     name: 'Cala del Naufragio', cx: 460, cz: -44, base: 46, amp: 8, freq: 4, phase: 0.8, rocky: true,
     hills: [
@@ -167,7 +167,7 @@ export class World {
     this._buildFishingIsland(); // isla 3: muelle + campamento de pesca de Alejandro
     this._buildParkour();       // isla 3 -> isla 4: puente destruido + parkour sobre el agua
     this._buildBunkerIsland();  // isla 4: puente levadizo + ambiente retro-tech
-    this._buildShipwreckIsland(); // isla 5: cala con naufragio + Nemo + el bote
+    this._buildShipwreckIsland(); // isla 5: cala con naufragio + Rosa + reparar el barco
     this._buildPirateShip();
   }
 
@@ -323,7 +323,7 @@ export class World {
   // Isla 5 "Cala del Naufragio": la isla más grande y rocosa (con montañas). Un puente la une a
   // la plataforma de llegada del Búnker. Acá viven el BARCO ENCALLADO en las rocas (que se repara
   // en estaciones y se bota al agua), la escalera de roca al pico donde se esconde un material, y
-  // los elementos de la isla. Nemo, los materiales y las estaciones los maneja
+  // los elementos de la isla. Rosa, los materiales y las estaciones los maneja
   // game/ShipwreckIsland.js. Expone `naufragio` (posiciones absolutas) + `installShipPart` /
   // `launchShipwreck` / `shipwreckLaunched` para el barco 3D.
   _buildShipwreckIsland() {
@@ -341,7 +341,7 @@ export class World {
     this._naufragioData = {
       center: { cx, cz },
       arrival: { x: shoreX + 5, z: cz },
-      nemo: abs(NAUFRAGIO.nemo.dx, NAUFRAGIO.nemo.dz),
+      rosa: abs(NAUFRAGIO.rosa.dx, NAUFRAGIO.rosa.dz),
       ship: { x: ship.x, z: ship.z },
       boardRadius: NAUFRAGIO.boardRadius,
       // Materiales (lista plana para spawnear) + estaciones de reparación (posición absoluta).
@@ -363,9 +363,9 @@ export class World {
     }
 
     // Elementos de la isla: montañas rocosas, bosque (pinos arriba / árboles abajo), palmeras en
-    // la playa y detalles de costa. Despeja Nemo, el barco, los materiales y las estaciones.
+    // la playa y detalles de costa. Despeja a Rosa, el barco, los materiales y las estaciones.
     const clearOf = this._naufragioData.materialItems
-      .concat([this._naufragioData.nemo, { x: ship.x, z: ship.z }])
+      .concat([this._naufragioData.rosa, { x: ship.x, z: ship.z }])
       .concat(this._naufragioData.stations);
     const avoid = (x, z) => clearOf.some((p) => Math.hypot(x - p.x, z - p.z) < 4.5);
     const rmats = stoneMats([0x8a8f96, 0x7c8188, 0x6f757b]);
@@ -403,15 +403,15 @@ export class World {
       const d = i % 3 === 0 ? makeStarfish() : i % 3 === 1 ? makeShell() : makeSeaweed();
       d.position.set(x, terrainHeight(isl, x, z), z); this.scene.add(d);
     });
-    // Escombros junto al barco + un campamento cerca de Nemo (fogón, red, ancla, tronco).
+    // Escombros junto al barco + un campamento cerca de Rosa (fogón, red, ancla, tronco).
     for (const [dx, dz] of [[NAUFRAGIO.ship.dx - 8, NAUFRAGIO.ship.dz + 6], [NAUFRAGIO.ship.dx - 6, NAUFRAGIO.ship.dz - 7]]) {
       this._place(buildBarrel(cx + dx, 0.9, cz + dz));
     }
     const at = (dx, dz, o) => { o.position.set(cx + dx, terrainHeight(isl, cx + dx, cz + dz), cz + dz); this.scene.add(o); };
     at(NAUFRAGIO.ship.dx - 12, NAUFRAGIO.ship.dz + 3, makeDriftwood());
     at(NAUFRAGIO.ship.dx - 10, NAUFRAGIO.ship.dz - 4, makeAnchor());
-    at(NAUFRAGIO.nemo.dx + 5, NAUFRAGIO.nemo.dz + 2, makeCampfire());
-    at(NAUFRAGIO.nemo.dx + 2, NAUFRAGIO.nemo.dz - 4, makeFishingNet());
+    at(NAUFRAGIO.rosa.dx + 5, NAUFRAGIO.rosa.dz + 2, makeCampfire());
+    at(NAUFRAGIO.rosa.dx + 2, NAUFRAGIO.rosa.dz - 4, makeFishingNet());
 
     // Checkpoints: llegada al Búnker (tras el parkour) y a la cala (una caída no te manda atrás).
     if (this.checkpoints) {

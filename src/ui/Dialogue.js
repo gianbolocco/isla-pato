@@ -1,6 +1,6 @@
 // Diálogo reutilizable (globo abajo-centro con nombre del que habla + texto +
 // botones de opción que se clickean). Lo usan el loro Juancho y, más adelante,
-// Nemo, Gian, Lulu y demás NPC. No maneja el pointer-lock: eso lo coordina quien
+// Rosa, Gian, Lulu y demás NPC. No maneja el pointer-lock: eso lo coordina quien
 // lo abre (ver game/CaboRoca.js con el `ui` controller de Game).
 
 export class Dialogue {
