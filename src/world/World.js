@@ -70,7 +70,12 @@ function hillsHeight(isl, x, z) {
     const d = Math.hypot(x - (isl.cx + m.dx), z - (isl.cz + m.dz));
     if (d < m.r) h += m.h * smoother(1 - d / m.r);
   }
-  return h;
+  // Falloff hacia el borde: las lomas se apagan ANTES de la playa, así el interior vuelve a
+  // altura 0 en el borde del pasto y no quedan huecos/costuras entre el terreno y la playa.
+  const dx = x - isl.cx, dz = z - isl.cz;
+  const f = Math.hypot(dx, dz) / islandRadius(isl, Math.atan2(dz, dx));
+  const edge = THREE.MathUtils.clamp((GRASS_F - 0.02 - f) / 0.16, 0, 1);
+  return h * smoother(edge);
 }
 
 // Muestrea la montaña en (x,z): devuelve altura, si esta sobre el camino, y nieve.
@@ -827,11 +832,20 @@ function buildIslandMesh(isl) {
       }
     } else if (isl.rocky) {
       h = hillsHeight(isl, x, z);   // 0 si la isla rocosa no tiene lomas (ej. Cabo Roca)
-      const rock = new THREE.Color(0x929892), moss = new THREE.Color(0x5c7d48), bare = new THREE.Color(0xb7bcb7);
-      const m = Math.sin(x * 0.6) * Math.cos(z * 0.5) * 0.5 + 0.5;   // 0..1 manchones
-      col = rock.clone().lerp(moss, m * 0.55);
-      if (isl.hills) col.lerp(bare, THREE.MathUtils.clamp(h / 11, 0, 1) * 0.65);   // picos más pelados/claros
-      col.multiplyScalar(0.85 + Math.random() * 0.18);
+      if (isl.hills) {
+        // Isla verde con picos rocosos: PASTO abajo → roca pelada arriba (según la altura).
+        const grass = new THREE.Color(0x6ba63f), grassD = new THREE.Color(0x83c25a);
+        const rock = new THREE.Color(0x8f9490), bare = new THREE.Color(0xbfc3bd);
+        const v = Math.sin(x * 1.1) * Math.cos(z * 0.9) * 0.5 + 0.5;   // moteado del pasto
+        col = grass.clone().lerp(grassD, v);
+        const tRock = THREE.MathUtils.clamp((h - 2.5) / 7, 0, 1);      // desde ~2.5 de altura empieza la roca
+        col.lerp(rock, tRock * 0.85).lerp(bare, THREE.MathUtils.clamp((h - 7) / 4, 0, 1) * 0.5);
+        col.multiplyScalar(0.9 + Math.random() * 0.12);
+      } else {
+        const rock = new THREE.Color(0x929892), moss = new THREE.Color(0x5c7d48);
+        const m = Math.sin(x * 0.6) * Math.cos(z * 0.5) * 0.5 + 0.5;   // 0..1 manchones
+        col = rock.clone().lerp(moss, m * 0.55).multiplyScalar(0.85 + Math.random() * 0.18);
+      }
     } else if (isl.bunker) {
       h = 0;   // piedra húmeda oscura + musgo (ruina tech al atardecer)
       const stone = new THREE.Color(0x3f4a4a), moss = new THREE.Color(0x2f5540);

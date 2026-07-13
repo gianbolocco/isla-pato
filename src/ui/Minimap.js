@@ -1,11 +1,12 @@
-// Minimapa 2D abajo-izquierda: dibuja las islas, puentes, plataformas y la posicion
-// (y orientacion) del jugador. Se alimenta de world.getMapData().
+// Minimapa 2D abajo-izquierda: dibuja las islas, puentes, plataformas y la posición (y
+// orientación) del jugador. Se alimenta de world.getMapData(). Los nombres van en "pastillas"
+// alternadas arriba/abajo de cada isla (con línea guía) para que no se encimen.
 
 export class Minimap {
   constructor(mapData) {
     this.data = mapData;
 
-    // Limites del mundo a partir de los contornos de las islas.
+    // Límites del mundo a partir de los contornos de las islas.
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
     for (const isl of mapData.islands) {
       for (const [x, z] of isl.pts) {
@@ -13,21 +14,23 @@ export class Minimap {
         minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
       }
     }
-    const pad = 14;
+    const pad = 10;
     this.b = { minX: minX - pad, maxX: maxX + pad, minZ: minZ - pad, maxZ: maxZ + pad };
 
-    // Canvas con la proporcion del mundo (max 200px de lado).
-    const maxSide = 200;
+    // Escala uniforme que entra en un área interior, dejando margen arriba/abajo para las
+    // etiquetas (MY) y a los lados (MX). El lienzo se dimensiona según esa escala.
+    this.MX = 10; this.MY = 30;
     const wWorld = this.b.maxX - this.b.minX;
     const hWorld = this.b.maxZ - this.b.minZ;
-    const aspect = wWorld / hWorld;
-    this.cw = aspect >= 1 ? maxSide : Math.round(maxSide * aspect);
-    this.ch = aspect >= 1 ? Math.round(maxSide / aspect) : maxSide;
+    const s = Math.min(288 / wWorld, 132 / hWorld);
+    this.s = s;
+    this.cw = Math.round(wWorld * s + this.MX * 2);
+    this.ch = Math.round(hWorld * s + this.MY * 2);
 
     const wrap = document.createElement('div');
     Object.assign(wrap.style, {
       position: 'fixed', bottom: '14px', left: '14px',
-      padding: '6px', borderRadius: '12px', background: 'rgba(14,17,22,0.45)',
+      padding: '6px', borderRadius: '12px', background: 'rgba(14,17,22,0.5)',
       border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
       backdropFilter: 'blur(3px)', pointerEvents: 'none', zIndex: '20',
     });
@@ -41,10 +44,18 @@ export class Minimap {
   }
 
   _xy(x, z) {
-    return [
-      (x - this.b.minX) / (this.b.maxX - this.b.minX) * this.cw,
-      (z - this.b.minZ) / (this.b.maxZ - this.b.minZ) * this.ch,
-    ];
+    return [this.MX + (x - this.b.minX) * this.s, this.MY + (z - this.b.minZ) * this.s];
+  }
+
+  _roundRect(x, y, w, h, r) {
+    const ctx = this.ctx;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
   }
 
   update(pos, facing) {
@@ -63,27 +74,16 @@ export class Minimap {
         if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       });
       ctx.closePath();
-      ctx.fillStyle = isl.mountain ? '#a9b7a0' : '#86c06a';
+      ctx.fillStyle = isl.mountain ? '#a9b7a0' : '#7cc25a';
       ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.stroke();
       if (isl.mountain) {
         const [mx, my] = this._xy(isl.cx, isl.cz);
         ctx.fillStyle = '#ffffff';
         ctx.beginPath(); ctx.arc(mx, my, 3.5, 0, Math.PI * 2); ctx.fill();
       }
-    }
-
-    // Nombres de las islas (o "?" si todavía no la diseñamos).
-    ctx.font = 'bold 9px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (const isl of this.data.islands) {
-      const [lx, ly] = this._xy(isl.cx, isl.cz);
-      const label = isl.name || '?';
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-      ctx.strokeText(label, lx, ly);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(label, lx, ly);
     }
 
     // Puentes.
@@ -103,22 +103,47 @@ export class Minimap {
     }
 
     // Jugador (flecha que apunta hacia donde mira).
-    const [px, py] = this._xy(pos.x, pos.z);
-    let dx = Math.sin(facing) / (this.b.maxX - this.b.minX) * this.cw;
-    let dz = Math.cos(facing) / (this.b.maxZ - this.b.minZ) * this.ch;
-    const len = Math.hypot(dx, dz) || 1;
-    dx /= len; dz /= len;
-    const px2 = -dz, pz2 = dx; // perpendicular
-    const S = 6;
+    const [ppx, ppy] = this._xy(pos.x, pos.z);
+    let dx = Math.sin(facing), dz = Math.cos(facing);
+    const len = Math.hypot(dx, dz) || 1; dx /= len; dz /= len;
+    const px2 = -dz, pz2 = dx, S = 6;
     ctx.fillStyle = '#ff5a7a';
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(px + dx * S, py + dz * S);
-    ctx.lineTo(px + px2 * S * 0.6, py + pz2 * S * 0.6);
-    ctx.lineTo(px - px2 * S * 0.6, py - pz2 * S * 0.6);
+    ctx.moveTo(ppx + dx * S, ppy + dz * S);
+    ctx.lineTo(ppx + px2 * S * 0.6, ppy + pz2 * S * 0.6);
+    ctx.lineTo(ppx - px2 * S * 0.6, ppy - pz2 * S * 0.6);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
+    // Nombres en pastillas, alternando arriba/abajo (con línea guía) para no encimarse.
+    ctx.font = 'bold 10px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    this.data.islands.forEach((isl, i) => {
+      const [cx, cy] = this._xy(isl.cx, isl.cz);
+      const label = isl.name || '?';
+      const w = ctx.measureText(label).width + 10, h = 15;
+      const above = i % 2 === 0;
+      let py = above ? cy - 20 : cy + 20;
+      py = Math.max(h / 2 + 1, Math.min(this.ch - h / 2 - 1, py));
+      let px = Math.max(w / 2 + 1, Math.min(this.cw - w / 2 - 1, cx));
+
+      // Línea guía isla → pastilla.
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+
+      // Pastilla.
+      this._roundRect(px - w / 2, py - h / 2, w, h, 5);
+      ctx.fillStyle = isl.name ? 'rgba(20,24,32,0.86)' : 'rgba(60,50,30,0.86)';
+      ctx.fill();
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, px, py + 0.5);
+    });
   }
 }
