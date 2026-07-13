@@ -410,8 +410,9 @@ export class World {
     const at = (dx, dz, o) => { o.position.set(cx + dx, terrainHeight(isl, cx + dx, cz + dz), cz + dz); this.scene.add(o); };
     at(NAUFRAGIO.ship.dx - 12, NAUFRAGIO.ship.dz + 3, makeDriftwood());
     at(NAUFRAGIO.ship.dx - 10, NAUFRAGIO.ship.dz - 4, makeAnchor());
-    at(NAUFRAGIO.rosa.dx + 5, NAUFRAGIO.rosa.dz + 2, makeCampfire());
-    at(NAUFRAGIO.rosa.dx + 2, NAUFRAGIO.rosa.dz - 4, makeFishingNet());
+    // Campamento de Rosa, corrido hacia el interior (no sobre el casco del barco).
+    at(NAUFRAGIO.rosa.dx - 4, NAUFRAGIO.rosa.dz + 4, makeCampfire());
+    at(NAUFRAGIO.rosa.dx - 6, NAUFRAGIO.rosa.dz + 1, makeFishingNet());
 
     // Checkpoints: llegada al Búnker (tras el parkour) y a la cala (una caída no te manda atrás).
     if (this.checkpoints) {

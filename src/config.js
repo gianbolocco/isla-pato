@@ -164,7 +164,7 @@ const _STATION_META = [
   { id: 'botar',    installs: [],        dx: 4,  dz: 3.6,  y: 1.2, launch: true }, // brea → al agua
 ];
 export const NAUFRAGIO = {
-  rosa: { dx: -34, dz: 2, talkRadius: 3.8 },     // cerca de la llegada (orilla oeste)
+  rosa: { dx: 42, dz: 0, talkRadius: 3.8 },      // al lado del barco encallado (orilla este)
   ship: { dx: 48, dz: 8, rotY: -0.5 },           // encallado en las rocas de la orilla este
   waterOffset: 18,                               // cuánto sale hacia el mar al botar
   waterY: -0.9,                                  // altura de flotación (≈ seaLevel + francobordo)
