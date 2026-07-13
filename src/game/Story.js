@@ -173,7 +173,7 @@ export class Story {
         update: () => this.shipwreck.aboard,
       },
       {
-        objective: 'Rumbo a El Pato Mareado, a rescatar a tu pato… ¡continuará! 🦆🏴‍☠️',
+        objective: '¡Llegaste a El Pato Mareado! Abordá con E y rescatá a tu pato 🏴‍☠️',
         update: () => false,
       },
     ];

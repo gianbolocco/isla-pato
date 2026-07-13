@@ -19,7 +19,8 @@ export class ShipwreckIsland {
     this.cutscene = cutscene;
 
     this.talked = false;
-    this.aboard = false;
+    this.aboard = false;       // ya zarpó (llegó al lado del barco pirata)
+    this.boarded = false;      // ya abordó el barco pirata (arranca el final)
     this._station = 0;         // estación de reparación actual
     this._launchClicked = false;
 
@@ -117,13 +118,26 @@ export class ShipwreckIsland {
   }
 
   _board() {
-    // Cinemática de zarpe: Belu y Rosa navegan hasta el barco pirata. Al llegar, aboard=true.
+    // Cinemática de zarpe: Belu y Rosa navegan hasta el barco pirata. Al llegar, aboard=true y
+    // aparece el prompt "E para abordar"; al abordar (onBoard) arranca el final.
     if (this.cutscene) {
-      this.cutscene.start({ rosa: this.rosa, onArrive: () => { this.aboard = true; } });
+      this.cutscene.start({
+        rosa: this.rosa,
+        onArrive: () => { this.aboard = true; },
+        onBoard: () => this._boardPirate(),
+      });
     } else {
       this.aboard = true;
       this.messageBox.show(NAUFRAGIO.boardTitle, NAUFRAGIO.boardMessage);
     }
+  }
+
+  // TODO(final): reemplazar el placeholder por la secuencia final (a diseñar con el usuario).
+  _boardPirate() {
+    this.boarded = true;
+    this.messageBox.show('El Pato Mareado 🏴‍☠️',
+      '¡Abordaste el barco del <b>Capitán Lulu</b>! El rescate de tu pato está por comenzar…' +
+      '<br><br><i>(el final está en construcción)</i>');
   }
 
   _makeMarker() {
