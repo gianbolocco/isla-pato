@@ -86,30 +86,38 @@ export class LuluModel {
     const face = new THREE.Mesh(new THREE.SphereGeometry(0.43, 16, 12), M.skin);
     face.scale.set(0.9, 0.9, 0.7); face.position.set(0, -0.02, 0.16); this.head.add(face);
 
-    // Barbita rubia.
-    const beard = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), M.beard);
-    beard.scale.set(0.9, 0.7, 0.6); beard.position.set(0, -0.28, 0.2); this.head.add(beard);
-
-    // Ojo bueno (derecha) + ceja.
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), mat(0x201a14));
-    eye.position.set(0.15, 0.04, 0.37); this.head.add(eye);
-    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.03, 0.03), M.hair);
-    brow.position.set(0.15, 0.13, 0.38); this.head.add(brow);
-    // Parche en el otro ojo (izquierda) + correa.
-    const patch = new THREE.Mesh(new THREE.CircleGeometry(0.1, 14), M.patch);
-    patch.position.set(-0.15, 0.05, 0.38); this.head.add(patch);
-    const strap = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.02, 6, 24), M.patch);
-    strap.rotation.y = 0.2; strap.position.set(0, 0.08, 0); this.head.add(strap);
-
-    // Naricita colorada + cachetes + boca.
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), M.nose);
-    nose.position.set(0, -0.04, 0.42); this.head.add(nose);
+    // ---- Barba rubia (mentón + mandíbula/patillas) + bigote ----
+    const chin = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 12), M.beard);
+    chin.scale.set(1.15, 0.85, 0.72); chin.position.set(0, -0.25, 0.24); this.head.add(chin);
     for (const s of [-1, 1]) {
-      const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), mat(0xe89b8a));
-      cheek.position.set(s * 0.24, -0.1, 0.34); this.head.add(cheek);
+      const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), M.beard);
+      jaw.scale.set(0.8, 1.05, 0.72); jaw.position.set(s * 0.27, -0.13, 0.16); this.head.add(jaw);
+      const mus = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), M.beard);
+      mus.scale.set(1.1, 0.65, 0.8); mus.position.set(s * 0.09, -0.1, 0.43); this.head.add(mus);
     }
-    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 8, 14, Math.PI), mat(0x5a2f28));
-    mouth.rotation.x = Math.PI; mouth.position.set(0, -0.16, 0.36); this.head.add(mouth);
+
+    // ---- Ojos centrados en el frente: derecho a la vista, izquierdo con parche ----
+    const eyeMat = mat(0x201a14);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), eyeMat);
+    eyeR.position.set(0.15, 0.06, 0.4); this.head.add(eyeR);
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 6), M.white);
+    glint.position.set(0.17, 0.1, 0.43); this.head.add(glint);
+    const browR = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.04, 0.04), M.hair);
+    browR.position.set(0.15, 0.17, 0.41); browR.rotation.z = -0.12; this.head.add(browR);
+    const patch = new THREE.Mesh(new THREE.CircleGeometry(0.11, 16), M.patch);
+    patch.position.set(-0.15, 0.06, 0.42); this.head.add(patch);
+    const strap = new THREE.Mesh(new THREE.TorusGeometry(0.43, 0.022, 6, 24), M.patch);
+    strap.rotation.y = 0.25; strap.position.set(0, 0.1, 0); this.head.add(strap);
+
+    // ---- Nariz colorada (bajo los ojos) + cachetes + boquita ----
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), M.nose);
+    nose.position.set(0, 0.0, 0.46); this.head.add(nose);
+    for (const s of [-1, 1]) {
+      const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), mat(0xe89b8a));
+      cheek.position.set(s * 0.23, -0.05, 0.4); this.head.add(cheek);
+    }
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.018, 8, 14, Math.PI), mat(0x5a2f28));
+    mouth.rotation.x = Math.PI; mouth.position.set(0, -0.16, 0.42); this.head.add(mouth);
 
     // ---- Gorro pirata negro (bicornio) con calavera ----
     const hat = new THREE.Group();

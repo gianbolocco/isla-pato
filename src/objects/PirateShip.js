@@ -119,14 +119,6 @@ export function makePirateShip() {
   for (const m of masts) {
     const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.5, m.h, 8), woodL);
     mast.position.set(m.x, DECK + m.h / 2, 0); g.add(mast);
-    const topY = DECK + m.h;
-    // Estáis (proa/popa) + obenques (a los costados) = "cuerdas".
-    g.add(lineTo(m.x, topY, 0, m.x + 6, DECK + 0.2, 0));
-    g.add(lineTo(m.x, topY, 0, m.x - 6, DECK + 0.2, 0));
-    for (const s of [-1, 1]) {
-      g.add(lineTo(m.x, topY - 1, 0, m.x - 2, DECK + 0.2, s * 3.8));
-      g.add(lineTo(m.x, topY - 1, 0, m.x + 2, DECK + 0.2, s * 3.8));
-    }
     for (let s = 0; s < 2; s++) {
       const yardY = DECK + m.h * (0.42 + s * 0.34);
       const yard = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, m.w * 1.15, 6), woodD);
@@ -140,11 +132,9 @@ export function makePirateShip() {
       sail.position.set(m.x, yardY - sh / 2, 0); g.add(sail);
     }
   }
-  // Ratlines (escala de cuerda) en el palo mayor.
-  for (const s of [-1, 1]) {
-    for (let i = 0; i <= 4; i++) { const y = DECK + 1 + i * 1.5; g.add(lineTo(-1.6, DECK + 0.3, s * 3.6, 1.6, y, s * 1.0, 0.03)); }
-    for (let i = 0; i < 4; i++) { const t = i / 4; const y = DECK + 1.2 + i * 1.4; g.add(lineTo(-1.6 + t * 1.0, y, s * (3.6 - t * 1.7), 1.6 - t * 1.0, y + 0.3, s * (1.5 - t * 0.3), 0.025)); }
-  }
+  // Cuerdas ALTAS entre los topes de los mástiles (bien arriba, NO cruzan la cubierta).
+  g.add(lineTo(9, DECK + 20, 0, 0, DECK + 27, 0, 0.05));
+  g.add(lineTo(0, DECK + 27, 0, -10, DECK + 16, 0, 0.05));
 
   // ---- Bandera pirata ----
   const flag = box(3.2, 2, 0.05, flagMat); flag.position.set(1.6, DECK + 27 + 0.5, 0); g.add(flag);
