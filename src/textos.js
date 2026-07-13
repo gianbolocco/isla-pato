@@ -96,20 +96,19 @@ export const TEXTOS = {
       '<i>Te llena la cara de lengüetazos.</i> Estuvo cuidando algo grande en la orilla…',
       '¡GUAU! Te arrastra hasta unas rocas: un <b>barco encallado</b>, hecho pedazos. ⛵💥',
       'Con ese barco podrías navegar hasta El Pato Mareado… pero está todo roto.',
-      'Nemo olfateó las <b>piezas</b> desperdigadas por toda la isla. ¡A juntarlas, Belu! 🦆',
+      'Para arreglarlo hay que juntar <b>materiales</b> por la isla: madera 🪵, tela 🧵, ' +
+        'soga 🪢 y brea 🛢️. ¡A buscarlos, Belu! 🦆',
     ],
   },
 
-  // --- PUZZLE de armado del barco (Cala del Naufragio). Orden de abajo hacia arriba. ---
-  barcoPuzzle: {
-    titulo: '🔧 Armá el barco',
-    intro:
-      'Juntaste todas las piezas. Ahora armá el barco <b>de abajo hacia arriba</b>: primero ' +
-      'el <b>casco</b>, después la <b>cubierta</b>, y al final el <b>mástil</b> y la <b>vela</b>. ' +
-      'Elegí las piezas en el orden correcto.',
-    correcto: '¡Encajó! 🔩',
-    incorrecto: 'Esa no va todavía… acordate: <b>de abajo hacia arriba</b>. 🤔',
-    completo: '¡BARCO REPARADO! 🚢✨ Sos una genia, Belu. ¡A zarpar!',
+  // --- REPARAR el barco (Cala del Naufragio): etiquetas de las 4 estaciones (en orden). ---
+  barcoReparar: {
+    estaciones: [
+      'Volvé al barco y parchá el <b>casco</b> con madera 🪵 (E)',
+      'Armá la <b>cubierta</b> y colocá el <b>timón</b> 🔨 (E)',
+      'Cosé la tela y <b>izá la vela</b> 🧵 (E)',
+      'Calafateá con <b>brea</b> y <b>botá</b> el barco al agua 🛢️ (E)',
+    ],
   },
 
   // --- EL BARCO REPARADO (Cala del Naufragio): al zarpar, rumbo al barco pirata. ---

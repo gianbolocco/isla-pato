@@ -2,6 +2,25 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-12 — Cala del Naufragio v2: barco carabela realista al agua + isla más rica + misión "reparar con materiales"
+- **Barco realista** (`world/props/shipwreck.js` reescrito): carabela/balandra low-poly legible
+  (casco con proa en punta, tracas, alcázar de popa, bauprés, cubierta ABIERTA) en vez del
+  medio-cilindro que leía como barril. Vela **crema** (era verdosa) + franja roja, foque y jarcia.
+  **Rocas separadas del casco** (`rocksGroup` estático vs `shipGroup` móvil): al reparar,
+  `launch(target)` **desliza el barco de las rocas al agua** (a `seaLevel`), lo endereza y lo deja
+  **flotando/meciéndose**, dejando las rocas en la orilla. `installPart(order)` revela cada pieza.
+- **Isla más rica** (`World._buildShipwreckIsland`): **montañas rocosas** (cúmulos de `buildRock`
+  sobre cada loma, más rocas en picos más altos + rocas-hito dispersas), **más árboles** (pino sin
+  nieve arriba / frondoso abajo; `makePine({snow:false})`), palmeras en la playa, y **detalles de
+  costa** nuevos (`world/props/coast.js`: driftwood, ancla, fogón con brasa, red de pesca,
+  caracoles, estrellas de mar, algas). Campamento cerca de Nemo.
+- **Misión nueva: reparar con materiales + estaciones** (reemplaza el puzzle de orden, se borró
+  `ui/AssemblyPuzzle.js`): Nemo (E) → juntar **materiales** (🪵×4 🧵×2 🪢×2 🛢️×1;
+  `shipParts.js`→`makeMaterial`, `ShipPartsField` con conteo por tipo) → 4 **estaciones** de
+  reparación en el barco (marcador brillante + E): casco→cubierta/timón→vela→calafatear+**botar** →
+  **embarcar**. Config `NAUFRAGIO` (materials/stations data-driven); World expone `installShipPart`/
+  `launchShipwreck`/`shipwreckLaunched`. Story: tally de materiales + objetivo por estación.
+
 ## 2026-07-12 — Rediseño Cala del Naufragio: isla grande rocosa + juntar piezas + puzzle de armado
 - **Isla más grande, rocosa y con montañas** (`ISLANDS[4]`, base 46, `rocky+hills`): nuevo
   relieve `hillsHeight` (suma de montículos smootherstep) enganchado en `terrainHeight`; la

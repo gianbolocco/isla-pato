@@ -148,15 +148,15 @@ export class Story {
         update: () => this.shipwreck.talked,
       },
       {
-        objective: () => `Junté las piezas del barco por la isla: ${this.shipwreck.collected}/${this.shipwreck.total} 🪵`,
+        objective: () => `Juntá materiales para el barco por la isla:  ${this.shipwreck.tally()}`,
         update: () => this.shipwreck.allCollected,
       },
       {
-        objective: 'Volvé al barco y armá las piezas en orden para repararlo (E) 🔧',
-        update: () => this.shipwreck.repaired,
+        objective: () => this.shipwreck.stationLabel || 'El barco se desliza al agua… 🌊',
+        update: () => this.shipwreck.launched,
       },
       {
-        objective: '¡Barco reparado! Embarcá para ir a El Pato Mareado ⚓',
+        objective: '¡Barco a flote! Embarcá para ir a El Pato Mareado ⚓',
         update: () => this.shipwreck.aboard,
       },
       {

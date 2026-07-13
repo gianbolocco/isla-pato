@@ -3,7 +3,9 @@ import * as THREE from 'three';
 // Props de naturaleza reutilizables. Cada maker devuelve un THREE.Group con el
 // origen en la base (y=0), listo para posicionar en el mundo.
 
-export function makePine() {
+// Pino conífero. `snow` (default true) le pone el gorrito de nieve (islas nevadas);
+// para islas tropicales/rocosas pasar { snow: false }.
+export function makePine({ snow = true } = {}) {
   const g = new THREE.Group();
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.8, 8),
     new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 1 }));
@@ -14,14 +16,16 @@ export function makePine() {
   let y = 0.7;
   for (let i = 0; i < 3; i++) {
     const r = 0.7 - i * 0.17, h = 0.8;
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), green);
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), snow ? green : green.clone());
     cone.position.y = y + h * 0.4; cone.castShadow = true;
     g.add(cone);
     y += h * 0.5;
   }
-  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 8), snowM);
-  cap.position.y = y + 0.35;
-  g.add(cap);
+  if (snow) {
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 8), snowM);
+    cap.position.y = y + 0.35;
+    g.add(cap);
+  }
   return g;
 }
 

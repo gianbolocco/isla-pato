@@ -152,33 +152,40 @@ export const BUNKER = {
   ],
 };
 
-// Isla 5 "Cala del Naufragio": la isla MÁS grande, rocosa y con montañas empinadas (bordes
-// de playa como Isla Pato). Belu reencuentra a NEMO, junta las 8 PIEZAS del barco encallado
-// desperdigadas por la isla y después las ARMA en orden (puzzle) para reparar el barco y
-// zarpar hacia "El Pato Mareado". Posiciones dx/dz relativas al centro de la isla (ISLANDS[4]).
-// Textos en textos.js → nemo/barcoPuzzle/barcoListo. Ver game/ShipwreckIsland.js.
+// Isla 5 "Cala del Naufragio": la isla MÁS grande, rocosa y con montañas (bordes de playa como
+// Isla Pato). Belu reencuentra a NEMO, junta MATERIALES (madera/tela/soga/brea) desperdigados
+// por la isla y después REPARA el barco encallado en 4 ESTACIONES; al calafatear con brea el
+// barco se BOTA (se desliza al agua) y Belu zarpa hacia "El Pato Mareado". Posiciones dx/dz
+// relativas al centro de la isla (ISLANDS[4]). Textos en textos.js → nemo/barcoReparar/barcoListo.
+const _STATION_META = [
+  { id: 'casco',    installs: [1, 2],    dx: -1, dz: -3.6, y: 1.2 },   // parchar el casco (madera)
+  { id: 'cubierta', installs: [3, 4, 8], dx: -3, dz: 0.0,  y: 1.7 },   // cubierta + timón + rueda
+  { id: 'vela',     installs: [5, 6, 7], dx: 1,  dz: 0.0,  y: 2.2 },   // mástil + verga + vela + jarcia
+  { id: 'botar',    installs: [],        dx: 4,  dz: 3.6,  y: 1.2, launch: true }, // brea → al agua
+];
 export const NAUFRAGIO = {
   nemo: { dx: -34, dz: 2, talkRadius: 3.8 },     // cerca de la llegada (orilla oeste)
   ship: { dx: 48, dz: 8, rotY: -0.5 },           // encallado en las rocas de la orilla este
-  boardRadius: 7.0,                              // radio para reparar/embarcar junto al barco
-  pickupRadius: 2.8,                             // cercanía para juntar cada pieza
+  waterOffset: 18,                               // cuánto sale hacia el mar al botar
+  waterY: -0.9,                                  // altura de flotación (≈ seaLevel + francobordo)
+  boardRadius: 8.0,                              // radio para reparar/embarcar junto al barco
+  stationRadius: 4.5,                            // radio de cada estación de reparación
+  pickupRadius: 2.8,                             // cercanía para juntar cada material
   nemoName: TEXTOS.nemo.nombre,
   reunion: TEXTOS.nemo.reencuentro,
-  puzzle: TEXTOS.barcoPuzzle,
   boardTitle: TEXTOS.barcoListo.titulo,
   boardMessage: TEXTOS.barcoListo.mensaje,
-  // Las 8 piezas del barco. `order` = orden correcto de armado (1 = primero, de abajo hacia
-  // arriba). dx/dz relativos al centro. `peak` marca la pieza escondida en un pico (parkour).
-  parts: [
-    { kind: 'bowPlanks',   name: 'Tablas de proa',  order: 1, dx: -30, dz: -14 },
-    { kind: 'sternPlanks', name: 'Tablas de popa',  order: 2, dx:  22, dz: -30 },
-    { kind: 'deck',        name: 'Cubierta',        order: 3, dx: -10, dz:  30 },
-    { kind: 'rudder',      name: 'Timón',           order: 4, dx:  34, dz: -18 },
-    { kind: 'mast',        name: 'Mástil',          order: 5, dx: -14, dz:   6, peak: true }, // pico empinado (saltar rocas)
-    { kind: 'yard',        name: 'Verga',           order: 6, dx:   4, dz: -10 },
-    { kind: 'sail',        name: 'Vela',            order: 7, dx:  26, dz:  28 },
-    { kind: 'wheel',       name: 'Rueda del timón', order: 8, dx: -20, dz: -28 },
+  // Materiales a juntar. dx/dz relativos al centro; algunos en picos (parkour). `count` = cuántos.
+  materials: [
+    { kind: 'madera', name: 'Madera', emoji: '🪵', count: 4,
+      spots: [{ dx: -30, dz: -14 }, { dx: 22, dz: -30 }, { dx: -14, dz: 6 }, { dx: 30, dz: 20 }] }, // (-14,6) = pico
+    { kind: 'tela', name: 'Tela', emoji: '🧵', count: 2, spots: [{ dx: -10, dz: 30 }, { dx: 34, dz: -18 }] },
+    { kind: 'soga', name: 'Soga', emoji: '🪢', count: 2, spots: [{ dx: -36, dz: 16 }, { dx: 4, dz: -10 }] },
+    { kind: 'brea', name: 'Brea', emoji: '🛢️', count: 1, spots: [{ dx: -20, dz: -28 }] },
   ],
+  // Estaciones de reparación (secuenciales) en el barco. `installs` = piezas del barco 3D que
+  // revela cada una; dx/dz/y del marcador relativos al barco. La etiqueta viene de textos.js.
+  stations: _STATION_META.map((m, i) => ({ ...m, label: TEXTOS.barcoReparar.estaciones[i] })),
 };
 
 // Avatar 3D con rig (Ready Player Me). Si `enabled` está en true y el .glb existe,

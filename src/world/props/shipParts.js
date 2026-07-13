@@ -1,55 +1,53 @@
 import * as THREE from 'three';
 
-// Mini-modelos de las PIEZAS del barco que Belu junta por la Cala del Naufragio (isla 5).
-// Cada `makePart(kind)` devuelve un THREE.Group chico y reconocible, con un brillo para que
-// se vea de lejos en la isla grande. La animación (flotar/girar) y el pickup los maneja
-// game/ShipPartsField.js. Los `kind` coinciden con las piezas de reparación del barco
-// (world/props/shipwreck.js): bowPlanks, sternPlanks, deck, rudder, mast, yard, sail, wheel.
+// Mini-modelos de los MATERIALES que Belu junta por la Cala del Naufragio (isla 5) para
+// reparar el barco: 🪵 madera, 🧵 tela (para la vela), 🪢 soga y 🛢️ brea. Cada
+// `makeMaterial(kind)` devuelve un THREE.Group chico y reconocible, con un brillo dorado para
+// verlo de lejos. La animación (flotar/girar) y el pickup los maneja game/ShipPartsField.js.
 
 function mat(color, opts = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.9, flatShading: true, ...opts });
 }
-function box(w, h, d, m) { return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); }
 
-const WOOD = 0x8a5a30, WOOD_D = 0x513521, WOOD_L = 0x9c6a3a, CANVAS = 0xe9e2cf, METAL = 0x3a3a40;
+const WOOD = 0x8a5a30, WOOD_L = 0x9c6a3a, CANVAS = 0xf3ead2, ROPE = 0xb99863, TAR = 0x1c1a18;
 
-export function makePart(kind) {
+export function makeMaterial(kind) {
   const g = new THREE.Group();
-  const wood = mat(WOOD), woodD = mat(WOOD_D), woodL = mat(WOOD_L);
 
-  if (kind === 'bowPlanks' || kind === 'sternPlanks' || kind === 'deck') {
-    // Montoncito de tablones.
+  if (kind === 'madera') {
+    // Fajo de tablas atado.
+    const wood = mat(WOOD), woodL = mat(WOOD_L);
     for (let i = 0; i < 3; i++) {
-      const pl = box(1.4, 0.14, 0.4, i % 2 ? woodL : wood);
-      pl.position.set(0, 0.1 + i * 0.16, (i - 1) * 0.12);
-      pl.rotation.y = (i - 1) * 0.12;
-      g.add(pl);
+      const pl = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.14, 0.4), i % 2 ? woodL : wood);
+      pl.position.set(0, 0.15 + i * 0.16, (i - 1) * 0.1); pl.rotation.y = (i - 1) * 0.1; g.add(pl);
     }
-  } else if (kind === 'rudder') {
-    const blade = box(0.18, 1.1, 0.6, woodD); blade.position.y = 0.55; g.add(blade);
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.7, 6), mat(METAL));
-    arm.rotation.z = Math.PI / 2; arm.position.set(0.3, 1.0, 0); g.add(arm);
-  } else if (kind === 'mast') {
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 1.6, 8), woodL);
-    pole.position.y = 0.8; g.add(pole);
-  } else if (kind === 'yard') {
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.6, 8), woodL);
-    pole.rotation.z = Math.PI / 2; pole.position.y = 0.5; g.add(pole);
-  } else if (kind === 'sail') {
-    const s = box(1.2, 1.0, 0.05, mat(CANVAS, { side: THREE.DoubleSide }));
-    s.position.y = 0.6; g.add(s);
-    const stripe = box(1.2, 0.22, 0.06, mat(0xb23a34)); stripe.position.set(0, 0.75, 0.01); g.add(stripe);
-  } else if (kind === 'wheel') {
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.07, 8, 18), woodL);
-    rim.position.y = 0.6; g.add(rim);
-    for (let i = 0; i < 6; i++) {
-      const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 6), woodL);
-      sp.position.y = 0.6; sp.rotation.z = (i / 6) * Math.PI; g.add(sp);
+    const tie = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.03, 6, 14), mat(ROPE));
+    tie.rotation.y = Math.PI / 2; tie.position.set(0.4, 0.3, 0); g.add(tie);
+  } else if (kind === 'tela') {
+    // Rollo de tela crema con una punta caída.
+    const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 1.1, 12), mat(CANVAS, { roughness: 1 }));
+    roll.rotation.z = Math.PI / 2; roll.position.y = 0.35; g.add(roll);
+    const flap = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), mat(CANVAS, { roughness: 1, side: THREE.DoubleSide }));
+    flap.rotation.x = -0.5; flap.position.set(0, 0.2, 0.4); g.add(flap);
+  } else if (kind === 'soga') {
+    // Rollo de soga (torus apilados).
+    const rm = mat(ROPE);
+    for (let i = 0; i < 3; i++) {
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.3 - i * 0.02, 0.08, 8, 18), rm);
+      coil.rotation.x = Math.PI / 2; coil.position.y = 0.12 + i * 0.14; g.add(coil);
     }
+  } else if (kind === 'brea') {
+    // Balde con brea negra.
+    const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.5, 12), mat(0x5a4a3a));
+    bucket.position.y = 0.25; g.add(bucket);
+    const tar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.08, 12), mat(TAR, { roughness: 0.4 }));
+    tar.position.y = 0.48; g.add(tar);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.02, 6, 14, Math.PI), mat(0x3a3a40, { metalness: 0.4 }));
+    handle.position.y = 0.5; g.add(handle);
   }
 
-  // Brillo dorado para que la pieza se vea de lejos (base + resplandor).
-  const glow = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10),
+  // Brillo dorado para verlo de lejos en la isla grande.
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10),
     mat(0xffffff, { emissive: 0xffd469, emissiveIntensity: 2.4, flatShading: false }));
   glow.position.y = 0.05; g.add(glow);
   const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.04, 6, 20),

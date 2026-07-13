@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { meshFrom } from './meshUtils.js';
-import { makePalm, makeCloud, makeBush, makeTree } from './props/nature.js';
+import { makePalm, makeCloud, makeBush, makeTree, makePine } from './props/nature.js';
+import { makeDriftwood, makeAnchor, makeCampfire, makeFishingNet, makeStarfish, makeShell, makeSeaweed } from './props/coast.js';
 import { makeUmbrella, makeLounger, makeBeachBall, makeTable, makeGrill } from './props/beach.js';
 import { makeChair, makeBucket, makeTackleBox, makeBottle as makeDrinkBottle, makeReeds } from './props/fishing.js';
 import { buildBarrel, buildWreck } from './props/parkour.js';
@@ -314,11 +315,12 @@ export class World {
   get drawbridgeEndX() { return this._dbEndX || 0; }
   lowerDrawbridge() { if (this._drawbridge) this._drawbridge.lower(); }
 
-  // Isla 5 "Cala del Naufragio": la isla más grande y rocosa (con montañas). Un puente la
-  // une a la plataforma de llegada del Búnker. Acá viven el BARCO ENCALLADO en las rocas (que
-  // se repara con el puzzle), las escaleras de roca al pico donde se esconde una pieza, y la
-  // vegetación. Nemo, las piezas y el puzzle los maneja game/ShipwreckIsland.js. Expone
-  // `naufragio` (posiciones absolutas) e `installShipPart/repairShipwreck` para el barco 3D.
+  // Isla 5 "Cala del Naufragio": la isla más grande y rocosa (con montañas). Un puente la une a
+  // la plataforma de llegada del Búnker. Acá viven el BARCO ENCALLADO en las rocas (que se repara
+  // en estaciones y se bota al agua), la escalera de roca al pico donde se esconde un material, y
+  // los elementos de la isla. Nemo, los materiales y las estaciones los maneja
+  // game/ShipwreckIsland.js. Expone `naufragio` (posiciones absolutas) + `installShipPart` /
+  // `launchShipwreck` / `shipwreckLaunched` para el barco 3D.
   _buildShipwreckIsland() {
     const isl = ISLANDS[4];
     const cx = isl.cx, cz = isl.cz;
@@ -337,10 +339,12 @@ export class World {
       nemo: abs(NAUFRAGIO.nemo.dx, NAUFRAGIO.nemo.dz),
       ship: { x: ship.x, z: ship.z },
       boardRadius: NAUFRAGIO.boardRadius,
-      parts: NAUFRAGIO.parts.map((p) => ({ kind: p.kind, name: p.name, order: p.order, ...abs(p.dx, p.dz) })),
+      // Materiales (lista plana para spawnear) + estaciones de reparación (posición absoluta).
+      materialItems: NAUFRAGIO.materials.flatMap((m) => m.spots.map((s) => ({ kind: m.kind, ...abs(s.dx, s.dz) }))),
+      stations: NAUFRAGIO.stations.map((s) => ({ ...s, x: ship.x + s.dx, z: ship.z + s.dz })),
     };
 
-    // El barco encallado en las rocas de la orilla este.
+    // El barco encallado en las rocas de la orilla este (carabela; se bota al agua al reparar).
     this._shipwreck = buildShipwreck(ship.x, 0.2, ship.z, NAUFRAGIO.ship.rotY);
     this.scene.add(this._shipwreck.group);
     this.colliders.push(...this._shipwreck.colliders);
@@ -353,24 +357,56 @@ export class World {
       this._place(buildRockPlatform(px + dx, y, pz + dz, 1.7));
     }
 
-    // Vegetación rocosa + rocas grandes (montañas-hito), despejando Nemo, el barco y las piezas.
-    const clearOf = this._naufragioData.parts.concat([this._naufragioData.nemo, { x: ship.x, z: ship.z }]);
+    // Elementos de la isla: montañas rocosas, bosque (pinos arriba / árboles abajo), palmeras en
+    // la playa y detalles de costa. Despeja Nemo, el barco, los materiales y las estaciones.
+    const clearOf = this._naufragioData.materialItems
+      .concat([this._naufragioData.nemo, { x: ship.x, z: ship.z }])
+      .concat(this._naufragioData.stations);
     const avoid = (x, z) => clearOf.some((p) => Math.hypot(x - p.x, z - p.z) < 4.5);
-    this._scatter(isl, 14, 0.2, 0.82, (x, z) => {
-      const tree = makeTree();
-      tree.position.set(x, terrainHeight(isl, x, z), z);
-      tree.scale.setScalar(0.9 + Math.random() * 0.5); tree.rotation.y = Math.random() * 7;
-      this.scene.add(tree);
-    }, avoid);
-    this._scatter(isl, 14, 0.25, 0.85, (x, z) => this.scene.add(makeBush(x, z)), avoid);
     const rmats = stoneMats([0x8a8f96, 0x7c8188, 0x6f757b]);
-    this._scatter(isl, 22, 0.12, 0.88, (x, z, i) => {
-      const size = 0.7 + Math.random() * 2.2;   // varias bien grandes (montañas de roca)
-      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, size, rmats[i % 3], 0.8 + Math.random() * 0.4));
-    }, avoid);
-    for (const [dx, dz] of [[NAUFRAGIO.ship.dx - 8, NAUFRAGIO.ship.dz + 5], [NAUFRAGIO.ship.dx - 6, NAUFRAGIO.ship.dz - 6]]) {
-      this._place(buildBarrel(cx + dx, 0.9, cz + dz));   // barriles de escombro junto al barco
+
+    // Cúmulos de rocas sobre las lomas → picos escarpados (más rocas en picos más altos).
+    for (const hill of isl.hills) {
+      const hx = cx + hill.dx, hz = cz + hill.dz;
+      for (let i = 0; i < 4 + Math.floor(hill.h); i++) {
+        const a = Math.random() * Math.PI * 2, rr = Math.random() * hill.r * 0.7;
+        const x = hx + Math.cos(a) * rr, z = hz + Math.sin(a) * rr;
+        if (avoid(x, z)) continue;
+        this._place(buildRock(x, terrainHeight(isl, x, z) + 0.2, z, 0.8 + Math.random() * 2.4, rmats[i % 3], 0.7 + Math.random() * 0.4));
+      }
     }
+    // Rocas grandes dispersas (montañas-hito) por toda la isla.
+    this._scatter(isl, 16, 0.12, 0.9, (x, z, i) => {
+      this._place(buildRock(x, terrainHeight(isl, x, z) + 0.15, z, 0.7 + Math.random() * 2.0, rmats[i % 3], 0.8));
+    }, avoid);
+    // Bosque: pino sin nieve en lo alto/rocoso, árbol frondoso en lo bajo.
+    this._scatter(isl, 22, 0.18, 0.82, (x, z) => {
+      const y = terrainHeight(isl, x, z);
+      const t = y > 3.5 ? makePine({ snow: false }) : makeTree();
+      t.position.set(x, y, z); t.rotation.y = Math.random() * 7;
+      t.scale.setScalar((y > 3.5 ? 1.1 : 0.9) + Math.random() * 0.6);
+      this.scene.add(t);
+    }, avoid);
+    this._scatter(isl, 16, 0.2, 0.85, (x, z) => this.scene.add(makeBush(x, z)), avoid);
+    // Palmeras en el anillo de playa.
+    this._scatter(isl, 8, 0.72, 0.9, (x, z) => {
+      const palm = makePalm(); palm.position.set(x, terrainHeight(isl, x, z), z); palm.rotation.y = Math.random() * 7;
+      this.scene.add(palm);
+    }, avoid);
+    // Detalles de costa dispersos por la playa (caracoles, estrellas de mar, algas).
+    this._scatter(isl, 24, 0.78, 0.98, (x, z, i) => {
+      const d = i % 3 === 0 ? makeStarfish() : i % 3 === 1 ? makeShell() : makeSeaweed();
+      d.position.set(x, terrainHeight(isl, x, z), z); this.scene.add(d);
+    });
+    // Escombros junto al barco + un campamento cerca de Nemo (fogón, red, ancla, tronco).
+    for (const [dx, dz] of [[NAUFRAGIO.ship.dx - 8, NAUFRAGIO.ship.dz + 6], [NAUFRAGIO.ship.dx - 6, NAUFRAGIO.ship.dz - 7]]) {
+      this._place(buildBarrel(cx + dx, 0.9, cz + dz));
+    }
+    const at = (dx, dz, o) => { o.position.set(cx + dx, terrainHeight(isl, cx + dx, cz + dz), cz + dz); this.scene.add(o); };
+    at(NAUFRAGIO.ship.dx - 12, NAUFRAGIO.ship.dz + 3, makeDriftwood());
+    at(NAUFRAGIO.ship.dx - 10, NAUFRAGIO.ship.dz - 4, makeAnchor());
+    at(NAUFRAGIO.nemo.dx + 5, NAUFRAGIO.nemo.dz + 2, makeCampfire());
+    at(NAUFRAGIO.nemo.dx + 2, NAUFRAGIO.nemo.dz - 4, makeFishingNet());
 
     // Checkpoints: llegada al Búnker (tras el parkour) y a la cala (una caída no te manda atrás).
     if (this.checkpoints) {
@@ -380,8 +416,20 @@ export class World {
   }
 
   get naufragio() { return this._naufragioData || null; }
-  installShipPart(order) { if (this._shipwreck) this._shipwreck.installPart(order); }
-  repairShipwreck() { if (this._shipwreck) this._shipwreck.repair(); }
+  get shipwreckLaunched() { return this._shipwreck ? this._shipwreck.ship.isLaunched() : false; }
+  installShipPart(order) { if (this._shipwreck) this._shipwreck.ship.installPart(order); }
+
+  // Bota el barco al agua: calcula un punto en el mar (afuera del centro) y lo lanza.
+  launchShipwreck() {
+    if (!this._shipwreck) return;
+    const c = this._naufragioData.center, s = this._naufragioData.ship;
+    const dx = s.x - c.cx, dz = s.z - c.cz, d = Math.hypot(dx, dz) || 1;
+    this._shipwreck.ship.launch({
+      x: s.x + (dx / d) * NAUFRAGIO.waterOffset,
+      y: NAUFRAGIO.waterY,
+      z: s.z + (dz / d) * NAUFRAGIO.waterOffset,
+    });
+  }
 
   // "El Pato Mareado" lejos en el mar (dirección +Z desde el muelle): la meta.
   _buildPirateShip() {
@@ -465,7 +513,7 @@ export class World {
         this._dbAdded = true;
       }
     }
-    if (this._shipwreck) this._shipwreck.update(dt);   // barco encallado: pop de piezas + cabeceo
+    if (this._shipwreck) this._shipwreck.ship.update(dt);   // barco: pop de piezas + botadura + cabeceo
     for (const c of this.clouds) {
       c.position.x += dt * c.userData.speed;
       if (c.position.x > 240) c.position.x = -240;
