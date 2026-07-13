@@ -59,6 +59,16 @@ export class Story {
     this.introBottle = this._addBottleReader(INTRO.bottle, INTRO.readRadius, INTRO.title, INTRO.message);
     this.bunkerNote = this._addBottleReader(BUNKER.bottle, BUNKER.readRadius, BUNKER.bottleTitle, BUNKER.bottleMessage);
 
+    // Arreglar el puente roto (nivel 1): al juntar todos los tablones, te acercás al puente y
+    // apretás E para repararlo (igual que las estaciones del barco en la isla 5).
+    this.interaction.add({
+      pos: () => this.world.bridgeRepairPoint || { x: 1e9, z: 1e9 },
+      radius: 4.5,
+      prompt: () => 'Apretá <b>E</b> para arreglar el puente 🔨',
+      enabled: () => this.plankField.allCollected && !this.world.bridgeRepaired,
+      onInteract: () => this.world.repairBridge(),
+    });
+
     this._steps = this._buildSteps();
     this._i = 0;
     this._refreshHud();
@@ -97,7 +107,10 @@ export class Story {
       {
         objective: () => `Juntá los tablones para arreglar el puente: ${this.plankField.collected}/${this.plankField.total}`,
         update: (dt) => { this.plankField.update(dt, this.player.position); return this.plankField.allCollected; },
-        onDone: () => this.world.repairBridge(),
+      },
+      {
+        objective: 'Volvé al puente roto y apretá E para arreglarlo 🔨',
+        update: () => this.world.bridgeRepaired,
       },
       {
         objective: '¡Puente reparado! Cruzá a Cabo Roca',

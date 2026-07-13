@@ -458,6 +458,17 @@ export class World {
     return b ? { x: b.bridge.x1, z: b.bridge.z1 } : null;
   }
 
+  // Punto sobre el puente roto (borde del hueco, del lado de Isla Pato) donde se para Belu
+  // para arreglarlo con E; y si ya está reparado. Lo usa game/Story.js (interacción).
+  get bridgeRepairPoint() {
+    const b = this._brokenBridge;
+    if (!b) return null;
+    const { x1, z1, x2, z2 } = b.bridge;
+    const f = 0.32;   // justo antes del hueco (sobre el tramo firme, alcanzable)
+    return { x: x1 + (x2 - x1) * f, z: z1 + (z2 - z1) * f };
+  }
+  get bridgeRepaired() { return !!(this._brokenBridge && this._brokenBridge._repaired); }
+
   // Agrega un resultado de builder ({ group, colliders, bridge, platform(s) }) a la
   // escena y registra sus colisiones/marcadores de minimapa.
   _place(built) {

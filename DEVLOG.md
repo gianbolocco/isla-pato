@@ -2,6 +2,13 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-13 — Nivel 1: el puente se repara con E (consistente con la isla 5)
+- Antes el puente roto se reparaba **solo** al juntar el último tablón. Ahora, tras juntar
+  todos los tablones, hay que **volver al puente y apretar E** para arreglarlo (igual que las
+  estaciones del barco). `World` expone `bridgeRepairPoint` (borde del hueco, alcanzable) y
+  `bridgeRepaired`; `Story` registra la interacción (habilitada al tener todos los tablones)
+  y sumó el paso "volvé al puente y apretá E". Se sacó el `onDone` de auto-reparación.
+
 ## 2026-07-13 — Cinemática de zarpe (Cala del Naufragio → barco pirata) + ajustes
 - **`game/SailCutscene.js`** (nuevo): al reparar el barco y **embarcar (E)**, arranca una
   cinemática — Belu y Rosa suben a la cubierta (hijas del barco, viajan con él) y el barco
