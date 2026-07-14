@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { PHYSICS, MOVE, JUMP, PLAYER, AVATAR } from '../config.js';
+import { PHYSICS, MOVE, JUMP, PLAYER, AVATAR, SOUND } from '../config.js';
 import { BeluModel } from './BeluModel.js';
 import { BeluAvatar } from './BeluAvatar.js';
+import { audio } from '../core/audio.js';
 
 // Controlador cinematico de Belu.
 // - Integra gravedad y velocidad manualmente (mejor "feel" que un motor de fisicas).
@@ -28,6 +29,7 @@ export class Player {
     this.jumpBufferedFor = 0;
     this.canDoubleJump = false;
     this.jumpHeld = false;
+    this._stepDist = 0;              // distancia acumulada para la cadencia de pisadas
 
     // Modelo visual: avatar con rig (Ready Player Me) o modelo de primitivas.
     // BeluAvatar cae solo en el de primitivas si el .glb no está disponible.
@@ -53,7 +55,26 @@ export class Player {
     const speed01 = THREE.MathUtils.clamp(horizSpeed / MOVE.runSpeed, 0, 1);
     this.belu.update(dt, speed01);
 
+    // Pisadas: acumula distancia recorrida en el suelo y suena una cada `stride` metros
+    // (así la cadencia se acelera sola al correr). El timbre depende de la superficie.
+    if (this.grounded && horizSpeed > 0.6) {
+      this._stepDist += horizSpeed * dt;
+      if (this._stepDist >= SOUND.stride) {
+        this._stepDist = 0;
+        audio.footstep(this.world.surfaceAt(this.position.x, this.position.z));
+      }
+    } else if (this.grounded) {
+      this._stepDist = SOUND.stride;   // parado: la próxima pisada suena apenas arranca
+    }
+
     this._syncMesh();
+
+    // Splash: al tocar la superficie del mar cayendo sobre agua abierta (una sola vez).
+    if (!this._splashed && this.velocity.y < 0 && this.feetY <= this.world.seaLevel
+        && this.world.groundHeightAt(this.position.x, this.position.z) === null) {
+      audio.splash();
+      this._splashed = true;
+    }
 
     // Red de seguridad: si se hunde en el mar, respawnea en la isla.
     if (this.position.y < this.world.killY) this.respawn();
@@ -102,10 +123,12 @@ export class Player {
         this.timeSinceGrounded = 999;   // consume el coyote
         this.canDoubleJump = JUMP.doubleJump;
         this.grounded = false;
+        audio.jump();
       } else if (this.canDoubleJump) {
         this.velocity.y = JUMP.doubleJumpVelocity;
         this.jumpBufferedFor = 0;
         this.canDoubleJump = false;
+        audio.jump();
       }
     }
   }
@@ -117,6 +140,7 @@ export class Player {
 
     const colliders = this.world.getColliders();
     const wasGrounded = this.grounded;
+    const vyBefore = this.velocity.y;   // para detectar el aterrizaje (venía cayendo)
     this.grounded = false;
 
     // Posicion previa (para el limite de pendiente del terreno).
@@ -153,10 +177,14 @@ export class Player {
     if (this.grounded) {
       this.timeSinceGrounded = 0;
       this.canDoubleJump = JUMP.doubleJump;
+      this._splashed = false;   // rearmar el splash para la próxima caída al agua
     }
 
-    // (wasGrounded queda disponible por si luego queremos sonidos de aterrizaje)
-    void wasGrounded;
+    // Aterrizaje: recién tocamos suelo tras venir cayendo con algo de velocidad.
+    if (!wasGrounded && this.grounded && vyBefore < -3) {
+      audio.land(this.world.surfaceAt(this.position.x, this.position.z));
+      this._stepDist = 0;   // no disparar una pisada inmediata al caer
+    }
   }
 
   // Mueve un eje y resuelve colisiones contra las cajas (Box3).

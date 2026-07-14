@@ -3,6 +3,7 @@ import { RosaModel } from '../entities/RosaModel.js';
 import { playLines } from './conversation.js';
 import { ShipPartsField } from './ShipPartsField.js';
 import { NAUFRAGIO } from '../config.js';
+import { audio } from '../core/audio.js';
 
 // Misión de la Isla 5 (Cala del Naufragio): Belu reencuentra a ROSA (su gata), junta MATERIALES
 // por la isla (madera/tela/soga/brea) y después REPARA el barco encallado en 4 ESTACIONES (parchar
@@ -106,6 +107,7 @@ export class ShipwreckIsland {
   }
 
   _greetRosa() {
+    audio.meow();
     playLines(this.dialogue, this.ui, NAUFRAGIO.rosaName, NAUFRAGIO.reunion, () => {
       this.talked = true;
       this.parts.spawn(this.world.naufragio.materialItems);   // aparecen los materiales

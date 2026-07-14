@@ -16,6 +16,7 @@ import { buildShipwreck } from './props/shipwreck.js';
 import { makePirateShip } from '../objects/PirateShip.js';
 import { makeLighthouse } from '../objects/Lighthouse.js';
 import { QUIZ, BUNKER, NAUFRAGIO } from '../config.js';   // parrotPos: zona a despejar; BUNKER/NAUFRAGIO: islas 4 y 5
+import { audio } from '../core/audio.js';
 
 // El mundo: orquesta las islas (terreno con altura, playa, nieve), el mar, cielo,
 // luces y la ubicación de todos los props (que viven en ./props/*). Mantiene la
@@ -38,7 +39,7 @@ const ISLANDS = [
   // Cabo Roca es GRANDE a propósito (Juancho está escondido y cuesta encontrarlo).
   { name: 'Cabo Roca', cx: 118, cz: 22, base: 38, amp: 6, freq: 4, phase: 1.3, rocky: true },
   { name: 'Cala del Pescador', cx: 240, cz: 0, base: 24, amp: 5, freq: 5, phase: 0.5 },  // lejos de Cabo Roca (puente largo)
-  { name: 'El Búnker', cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0, bunker: true },  // isla 4: puzzle lógico
+  { name: 'Bahía Binaria', cx: 350, cz: -18, base: 22, amp: 5, freq: 6, phase: 2.0, bunker: true },  // isla 4: puzzle lógico
   // Isla 5: la MÁS grande, rocosa y con montañas (lomas empinadas). Bordes de playa como
   // Isla Pato. `hills` = relieve caminable/empinado (ver hillsHeight). Rosa + barco encallado.
   {
@@ -186,6 +187,9 @@ export class World {
     g.add(makeTackleBox(cx - 2, cz + 15));
     g.add(makeDrinkBottle(cx, cz + 14, 0x3a7d4a));
     g.add(makeTable(cx + 5, cz + 9));
+    // Rincón de la mamá (varada y quejosa): sombrilla + reposera al lado (MAMA.pos ≈ cx-9, cz+16).
+    g.add(makeUmbrella(cx - 9, cz + 17));
+    g.add(makeLounger(cx - 6.5, cz + 16, 0xdd6f7a));
     for (let i = 0; i < 10; i++) {                 // juncos por la orilla norte
       const a = Math.PI / 2 + (Math.random() - 0.5) * 1.7;
       const r = islandRadius(isl, a) * (0.8 + Math.random() * 0.12);
@@ -283,18 +287,29 @@ export class World {
       Math.hypot(x - BUNKER.console.x, z - BUNKER.console.z) <= 10 ||
       Math.hypot(x - BUNKER.bottle.x, z - BUNKER.bottle.z) <= 4 ||
       x >= this._dbPivot.x - 3;
-    this._scatter(isl, 16, 0.5, 0.86, (x, z) => {
+    // rMax 0.72 (dentro del pasto): los props NO invaden el anillo de playa. Árboles verdes
+    // normales (como el resto de las islas), ya no oscurecidos.
+    this._scatter(isl, 16, 0.5, 0.72, (x, z) => {
       const tree = makeTree();
       tree.position.set(x, terrainHeight(isl, x, z), z);
       tree.scale.setScalar(0.9 + Math.random() * 0.5); tree.rotation.y = Math.random() * 7;
-      tree.traverse((o) => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.68); } });
       this.scene.add(tree);
     }, avoid);
-    this._scatter(isl, 12, 0.5, 0.86, (x, z) => this.scene.add(makeBush(x, z)), avoid);
-    const rmats = stoneMats([0x565c5c, 0x474d4d, 0x3f4a4a]);   // piedra oscura del Búnker
-    this._scatter(isl, 12, 0.5, 0.86, (x, z, i) => {
+    this._scatter(isl, 12, 0.5, 0.72, (x, z) => this.scene.add(makeBush(x, z)), avoid);
+    const rmats = stoneMats([0x8a8f96, 0x7c8188, 0x6f757b]);   // piedra gris normal
+    this._scatter(isl, 12, 0.5, 0.72, (x, z, i) => {
       this._place(buildRock(x, terrainHeight(isl, x, z) + 0.1, z, 0.6 + Math.random() * 1.2, rmats[i % 3], 0.8));
     }, avoid);
+    // Palmeras en la orilla (que el borde lea como playa, igual que las otras islas), tinte
+    // apagado para no romper el clima tormentoso.
+    for (const a of [0.5, 2.3, 3.9, 5.4]) {
+      const r = islandRadius(isl, a) * 0.76;
+      const palm = makePalm();
+      palm.position.set(isl.cx + Math.cos(a) * r, 0, isl.cz + Math.sin(a) * r);
+      palm.rotation.y = Math.random() * Math.PI * 2;
+      palm.traverse((o) => { if (o.isMesh && o.material) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.72); } });
+      this.scene.add(palm);
+    }
     for (const [dx, dz] of [[-9, 5.5], [-6.5, 7], [8.5, 6]]) {
       this._place(buildBarrel(BUNKER.console.x + dx, 1.0, BUNKER.console.z + dz));
     }
@@ -318,7 +333,11 @@ export class World {
 
   get drawbridgePivot() { return this._dbPivot || null; }
   get drawbridgeEndX() { return this._dbEndX || 0; }
-  lowerDrawbridge() { if (this._drawbridge) this._drawbridge.lower(); }
+  lowerDrawbridge() {
+    if (!this._drawbridge) return;
+    this._drawbridge.lower();
+    if (!this._dbSoundPlayed) { this._dbSoundPlayed = true; audio.mechanism(); }   // sonido una sola vez
+  }
 
   // Isla 5 "Cala del Naufragio": la isla más grande y rocosa (con montañas). Un puente la une a
   // la plataforma de llegada del Búnker. Acá viven el BARCO ENCALLADO en las rocas (que se repara
@@ -412,6 +431,7 @@ export class World {
     at(NAUFRAGIO.ship.dx - 10, NAUFRAGIO.ship.dz - 4, makeAnchor());
     // Campamento de Rosa, corrido hacia el interior (no sobre el casco del barco).
     at(NAUFRAGIO.rosa.dx - 4, NAUFRAGIO.rosa.dz + 4, makeCampfire());
+    audio.addFire(cx + NAUFRAGIO.rosa.dx - 4, cz + NAUFRAGIO.rosa.dz + 4);   // crepitar por cercanía
     at(NAUFRAGIO.rosa.dx - 6, NAUFRAGIO.rosa.dz + 1, makeFishingNet());
 
     // Checkpoints: llegada al Búnker (tras el parkour) y a la cala (una caída no te manda atrás).
@@ -533,6 +553,24 @@ export class World {
     return null;
   }
 
+  // Superficie caminable en (x,z): 'sand' (anillo de playa), 'rock' (islas rocosas / búnker /
+  // picos de las lomas) o 'grass'. null si es mar. Se usa para el timbre de las pisadas.
+  surfaceAt(x, z) {
+    for (const isl of ISLANDS) {
+      const dx = x - isl.cx, dz = z - isl.cz;
+      const a = Math.atan2(dz, dx);
+      const rad = islandRadius(isl, a);
+      const dist = Math.hypot(dx, dz);
+      if (dist > rad * BEACH_WALK) continue;      // fuera de esta isla
+      if (dist >= rad * GRASS_F) return 'sand';   // anillo de playa (arena)
+      if (isl.mountain) return 'rock';
+      if (isl.hills && hillsHeight(isl, x, z) > 3) return 'rock'; // pico rocoso de la loma
+      if (isl.rocky) return 'rock';               // Cabo Roca (piedra/musgo)
+      return 'grass';
+    }
+    return null;
+  }
+
   getMapData() {
     const islands = ISLANDS.map((isl) => {
       const pts = [];
@@ -646,6 +684,7 @@ export class World {
   openGate() {
     if (!this._gate || this._gate._opened) return;
     this._gate.open();
+    audio.mechanism();
     const i = this.colliders.indexOf(this._gate.gateCollider);
     if (i >= 0) this.colliders.splice(i, 1);
     this._gate._opened = true;
@@ -889,12 +928,8 @@ function buildIslandMesh(isl) {
         const m = Math.sin(x * 0.6) * Math.cos(z * 0.5) * 0.5 + 0.5;   // 0..1 manchones
         col = rock.clone().lerp(moss, m * 0.55).multiplyScalar(0.85 + Math.random() * 0.18);
       }
-    } else if (isl.bunker) {
-      h = 0;   // piedra húmeda oscura + musgo (ruina tech al atardecer)
-      const stone = new THREE.Color(0x3f4a4a), moss = new THREE.Color(0x2f5540);
-      const m = Math.sin(x * 0.5) * Math.cos(z * 0.5) * 0.5 + 0.5;
-      col = stone.clone().lerp(moss, m * 0.5).multiplyScalar(0.7 + Math.random() * 0.16);
     } else {
+      // Pasto verde (Isla Pato, Cala del Pescador y Bahía Binaria): moteado suave.
       h = 0;
       const v = 0.82 + (Math.sin(x * 1.3) * Math.cos(z * 1.1) * 0.5 + 0.5) * 0.32;
       col = green.clone().multiplyScalar(v);

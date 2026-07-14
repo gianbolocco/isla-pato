@@ -11,18 +11,30 @@
 export const TEXTOS = {
 
   // --- INTRO NARRADA (menú → historia). Cada línea de abajo es una tarjeta. ---
-  intro: [
-    'Belu y Gian se escaparon de vacaciones a <b>Isla Pato</b> 🏝️.<br>' +
-      'Sol, mar turquesa y todo el tiempo del mundo para los dos.',
-    'Después de una mañana de playa, a Belu le ganó el sueño.<br>' +
-      '«Me tiro una siesta un ratito», dijo, y se acurrucó en la cabaña. 😴',
-    '«Yo aprovecho a explorar un toque la isla», dijo Gian con cara de aventurero.<br>' +
-      '«Ya vuelvo, pato.» 🧭 Y salió a caminar entre las palmeras.',
-    'Belu se despertó un rato después…<br>y la cabaña estaba en silencio. <b>Gian no estaba.</b><br>' +
-      'Ni una nota, ni un ruido. Nada. 😟',
-    '¿Dónde se metió? Algo no anda bien.<br>' +
-      'Es hora de levantarse y salir a buscar a tu pato. 🦆💛',
-  ],
+intro: [
+  'Belu y Gian por fin llegaron a su destino soñado:<br>' +
+    '<b>Isla Pato</b> 🏝️ un pequeño paraíso perdido en medio del océano.<br>' +
+    'Arena blanca, aguas cristalinas y días enteros para disfrutar juntos. 💛',
+
+  'Después de pasar la mañana recorriendo la playa, jugando en la arena y riéndose de cualquier cosa,<br>' +
+    'el cansancio empezó a ganar.<br>' +
+    '«Voy a dormir una siestita, pato», dijo Belu mientras volvía a la cabaña. 😴',
+
+  'Gian, como siempre con ganas de explorar, mira el mar y la playa. <br>' +
+    '«Voy a recorrer un poco y vuelvo enseguida», dijo mientras preparaba el mate.<br>' +
+    '«No me extrañes, pato.» 🧭🦆',
+
+  'Pasó un rato… y después pasó un poco más.<br>' +
+    'Belu abrió los ojos lentamente, todavía medio dormida.<br>' +
+    'Pero algo estaba raro… la cabaña estaba demasiado tranquila. 😟',
+
+  'La puerta estaba entreabierta y Gian no estaba por ningún lado.<br>' +
+    'No había mensajes, no había pistas… solo una extraña sensación de que algo había ocurrido.',
+
+  'Donde se habra metido?<br>' +
+    'Voy a tener que salir a buscarlo...'
+,
+],
 
   // --- BOTELLA del muelle (Isla Pato, al principio). ---
   botellaIntro: {
@@ -40,11 +52,11 @@ export const TEXTOS = {
   botellaBunker: {
     titulo: 'Che pato… la última traba 🔌',
     mensaje:
-      '¡Pato! Casi llegás 😭. El <b>Capitán Lulu</b> trabó el <b>puente levadizo</b> con una ' +
-      '<b>cerradura de compuertas lógicas</b> bien enredada (se cree Bill Gates, el pirata). Yo ' +
-      'no entiendo nada… pero vos SÍ: sos la mejor <b>ingeniera en informática</b> del mundo 💛.<br><br>' +
+      '¡Pato! Si estas leyendo esto es porque llegaste muy lejos!!!. El <b>Capitán Lulu</b> trabó el <b>puente levadizo</b> con una ' +
+      '<b>cerradura de compuertas lógicas</b> muy complejaaa. Yo ' +
+      'no entiendo nada… pero vos SÍ: sos la mejor <b>ingeniera</b> del mundo 💛.<br><br>' +
       'Movés las <b>8 palancas</b> (cada una 0 o 1). Las compuertas <b>AND / OR / NOT / XOR</b> ' +
-      'combinan las señales por el tablero. Cuando la <b>lámpara de SALIDA se ponga en cian</b>, ' +
+      'combinan las señales por el tablero. Cuando la <b>lámpara de SALIDA se ponga en celeste</b>, ' +
       'el puente baja.<br><br>Hay una sola combinación correcta. ¡Vos podés, pato! Te amo. — Gian',
   },
 
@@ -58,19 +70,44 @@ export const TEXTOS = {
     // Cada pregunta: el texto, las opciones y cuál es la correcta (0 = la primera).
     preguntas: [
       {
-        pregunta: '¿Cómo se llama el "pato" que Belu quiere rescatar?',
-        opciones: ['Gianlucca', 'Un pingüino', 'El Capitán Lulu'],
+        pregunta: '¿Cual fue el primer apodo que se pusieron antes de ser novios?',
+        opciones: ['Patos', 'Pesecitos', 'Loquitos'],
+        correcta: 2,
+      },
+        {
+        pregunta: '¿Qué comida es la favorita de Gian?',
+        opciones: ['sushi', 'Guiso de lentejas','asado'],
+    correcta: 1,
+  },
+      {
+        pregunta: '¿Cual es lo que mas le gusta hacer a Rosa?',
+        opciones: ['Jugar', 'Cazar pajos', 'Absolutamente nada'],
+        correcta: 2,
+      },
+      {
+        pregunta: '¿Cual fue la bebida que se pidieron la primera cita despues del cine?',
+        opciones: ['daiquiri', 'dos cocuchas frias', 'Gin'],
+        correcta: 1,
+      },
+      {
+        pregunta: '¿Como se llamaba el caballo que eligio belu en la cabalgata de villa ruiz?',
+        opciones: ['Capricho', 'Muñeco', 'Jose'],
         correcta: 0,
       },
       {
-        pregunta: '¿Quién se llevó a Gian en el barco pirata?',
-        opciones: ['El Capitán Lulu', 'Un delfín', 'Rosa la gata'],
+        pregunta: '¿Que comida llevamos las veces que fuimos a almorzar al jardin botanico?',
+        opciones: ['empanadas', 'hamburguesa', 'focaccia'],
+        correcta: 2,
+      },
+      {
+        pregunta: '¿Que nombre le pensamos poner a sus futuros patitos?',
+        opciones: ['Felipe', 'Bernardina', 'Hlario'],
         correcta: 0,
       },
       {
-        pregunta: '¿Cómo se dicen de cariño Belu y Gian?',
-        opciones: ['Pato', 'Jefe', 'Vecino'],
-        correcta: 0,
+        pregunta: '¿Donde te pidio gian de ser novios?',
+        opciones: ['En un restaurante', 'En un auto', 'En su casa'],
+        correcta: 1,
       },
     ],
   },
@@ -79,11 +116,24 @@ export const TEXTOS = {
   alejandro: {
     nombre: 'Alejandro',
     lineas: [
-      '¿Qué hacés, pitu? 🎣 Estaba acá tranquilo pescando…',
-      '…cuando apareció el <b>Capitán Lulu</b>. El muy pirata sabe que andás buscando a Gian.',
-      'Y para complicarte, ¡me <b>destrozó el puente</b> a la otra isla! 😤',
+      '¡Pitu! ¿Vos por acá? 🎣 Con tu mamá andábamos paseando en la lancha por las islas…',
+      '…y el <b>Capitán Lulu</b>, el muy pirata, nos dejó varados en esta cala. A tu mamá no le hizo ni gracia, je.',
+      'Yo aproveché para tirar la caña un rato. Pero escuché que ese pirata se llevó a Gian… ¿es cierto?',
+      '¡Y para colmo <b>destrozó el puente</b> a la otra isla! 😤',
       'Vas a tener que cruzar <b>saltando por las rocas y los restos del naufragio</b>. ¡Con cuidado, pitu!',
-      'Tomá, llevate mi <b>anzuelo de la suerte</b> 🎣. ¡Traémelo a Gian! Te amo, hija 💛',
+      '¡Traémelo a Gian! ¡Vos podés! 🎣',
+    ],
+  },
+
+  // --- MAMÁ de Belu (Cala del Pescador). NPC de COMEDIA opcional (no traba la misión). ---
+  mama: {
+    nombre: 'Jimena',   // 👉 poné acá el nombre real si querés
+    lineas: [
+      '¡Belu, mi amor! ¿Viste dónde nos vino a dejar varados el pirata este? 💅',
+      'En esta isla no hay UN shopping, ni señal, ni un cafecito decente. ¡Nada de nada!',
+      '¿Vos sabés lo que es estar tres días sin wifi? Un calvario, nena.',
+      'Tu papá chocho con sus pescaditos, y yo acá achicharrándome al sol.',
+      'Dale, andá a rescatar a Gian… ¡pero después nos sacás de esta isla, eh! 🕶️',
     ],
   },
 
@@ -92,10 +142,10 @@ export const TEXTOS = {
     nombre: 'Rosa',
     reencuentro: [
       '¡Miau! 🐱 <i>Entre las rocas asoma una gatita blanca y negra…</i>',
-      '¡Es <b>Rosa</b>! Tu gata, que se restriega contra las piernas de Belu ronroneando. 💛',
-      '<i>Te da cabezazos cariñosos.</i> Estuvo vigilando algo grande en la orilla…',
-      '¡Miau! Te guía hasta unas rocas: un <b>barco encallado</b>, hecho pedazos. ⛵💥',
-      'Con ese barco podrías navegar hasta El Pato Mareado… pero está todo roto.',
+      '¡Es <b>Rosa</b>! que se restriega contra las piernas de Belu ronroneando. 💛',
+      '<i>Te da cabezazos cariñosos y babea¿ (que asco).</i> Estuvo vigilando algo grande en la orilla…',
+      '¡Miau! Te guía hasta unas rocas: ¡Es el <b>barco encallado</b> que dijo Gian! aunque... hecho pedazos. ⛵💥',
+      'Con ese barco podrías navegar hasta El barco pirata… pero está todo roto.',
       'Para arreglarlo hay que juntar <b>materiales</b> por la isla: madera 🪵, tela 🧵, ' +
         'soga 🪢 y brea 🛢️. ¡A buscarlos, Belu! 🐾',
     ],
@@ -115,36 +165,35 @@ export const TEXTOS = {
   barcoListo: {
     titulo: 'El barco reparado 🚢',
     mensaje:
-      'El barco quedó como nuevo, meciéndose junto a las rocas. A lo lejos se recorta ' +
-      '<b>El Pato Mareado</b>, el barco del <b>Capitán Lulu</b>, con Gian en algún lado. 🏴‍☠️<br><br>' +
-      'Subís con Rosa y tomás el timón. Es hora de navegar y <b>rescatar a tu pato</b>.<br><br>' +
-      '<i>— Continuará: el abordaje a El Pato Mareado —</i>',
+      'El barco quedó como nuevo, meciéndose junto a las rocas. A lo lejos se ve... ' +
+      'el barco del <b>Capitán Lulu</b>, con Gian en algún lado. 🏴‍☠️<br><br>' +
+      'Subís con Rosa y tomás el timón. Es hora de navegar y <b>rescatar a tu pato</b>.<br><br>'
   },
 
   // --- FINAL (abordaje del Pato Mareado): Capitán Lulu, rescate de Gian y carta dedicada. ---
   lulu: {
     nombre: 'Capitán Lulu',
     amenaza:
-      '¡BRAAA! ¿Quién se atreve a abordar <b>mi</b> Pato Mareado?… ¿una chica con una gata? 😼<br>' +
-      '¡Jo jo jo! Nunca liberarás a tu "patito". ¡El cañón no te servirá de na—!',
-    derrota: '¡NOOO, mi gorriteee! 💫',
+      '¡BRAAA! ¿Quién se atreve a abordar <b>mi barcooo</b>?… ¿una chica con una gata? 😼<br>' +
+      '¡Jo jo jo! Nunca liberarás a gian. ¡El cañón no te servirá de nada!',
+    derrota: '¡NOOO, AAAAAAAAAA! 💫',
   },
 
   // Líneas de Gian al salir de la jaula (se muestran en el reencuentro).
   gianRescate:
     '¡PATO! 😭 Sabía que ibas a venir a buscarme…<br><br>' +
-    'Cruzaste islas, arreglaste un barco y le metiste un cañonazo a un pirata. ' +
+    'Cruzaste islas, arreglaste un barco y le metiste un cañonazo a Lulu ' +
     'Sos la persona más valiente, inteligente y hermosa del mundo. 💛',
 
   // ✍️ CARTA FINAL — el mensaje dedicado de Gian a Belu. EDITÁ ESTO con tus palabras.
   finalCarta: {
-    titulo: 'Para vos, mi pato 💛',
-    mensaje:
-      'Belu, hice este jueguito entero para decirte algo simple: <b>te amo</b>.<br><br>' +
-      'Gracias por bancarme, por hacerme reír y por ser mi lugar favorito del mundo. Cada isla ' +
-      'de este viaje es un pedacito de lo mucho que te quiero.<br><br>' +
-      'Sos mi pato. Y yo, para siempre, el tuyo. 🦆❤️<br><br>' +
-      '<i>(editá este mensaje en src/textos.js → finalCarta)</i>',
-  },
+  titulo: 'Para vos, mi pato 💛',
+  mensaje:
+    'Belu, seguro que a este juego le faltan muchas cosas, pero te lo hice con mucho amor y dedicación.<br><br>' +
+    'Cumplimos 2 años de novio y quería sacarte una sonrisa un ratito, y recordarte que me hacés feliz, y que cada día me hacés un poquito más feliz.<br><br>' +
+    'Esto es una manera de retribuirte todo lo que me das: tu amor, tus besos, tus abrazos y la calma que me das.<br><br>' +
+    'Haciendo referencia al juego, vos me salvaste en muchos sentidos. No me imagino una vida sin vos, sin tus mensajitos, sin tus abrazos y sin tenerte a mi lado.<br><br>' +
+    'Te amo, gracias por todo. 🦆',
+},
 
 };

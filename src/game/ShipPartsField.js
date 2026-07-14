@@ -1,5 +1,6 @@
 import { makeMaterial } from '../world/props/shipParts.js';
 import { NAUFRAGIO } from '../config.js';
+import { audio } from '../core/audio.js';
 
 // Los MATERIALES del barco desperdigados por la Cala del Naufragio (isla 5). La historia
 // decide cuándo aparecen (spawn), tras hablar con Rosa. Se juntan por cercanía (como los
@@ -49,6 +50,7 @@ export class ShipPartsField {
         this.scene.remove(p.mesh);
         this.collected++;
         this.counts[p.kind] = (this.counts[p.kind] || 0) + 1;
+        audio.pickup();
         if (this.collected >= this.total) this.allCollected = true;
       }
     }

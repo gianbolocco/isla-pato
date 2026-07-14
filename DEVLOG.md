@@ -2,6 +2,64 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-13 — Cala del Pescador: conector + la mamá de Belu (NPC de comedia)
+- **Conector:** antes Alejandro (el papá) aparecía de la nada. Ahora sus líneas (`textos.js →
+  alejandro`) explican que la familia andaba **paseando en la lancha por las islas y el Capitán
+  Lulu los dejó varados** en la Cala del Pescador (sin tocar la intro).
+- **Mamá de Belu** (NPC nuevo, COMEDIA opcional, no traba la misión): `entities/MamaModel.js` —
+  chibi "Belu adulta" (mismo pelo rubio ondulado + carita tierna, vestido coral, anteojos de sol
+  en la cabeza y **cartera** para el chiste del shopping). Se para bajo una **sombrilla + reposera**
+  junto al campamento. Interacción E con líneas ("acá no hay ni un shopping, ni señal, ni wifi…").
+  Textos en `textos.js → mama` (nombre editable). Config `MAMA` en `config.js`. Enganchada en
+  `game/FishingIsland.js` (modelo + interacción + update) y props en `World._buildFishingIsland`.
+
+## 2026-07-13 — Intro con estética pirata/mar + logo del juego
+- **Logo/emblema** (`ui/logo.js` → `LOGO_SVG`, y `public/favicon.svg` con el mismo dibujo): roundel
+  náutico vector puro — anillo de soga dorada, mar de atardecer con sol, rosa de los vientos tenue,
+  olas y un **patito con tricornio pirata**. Sirve grande en la intro y como **favicon** del juego.
+- **StartScreen rediseñada** (`ui/StartScreen.js`): paleta de mapa antiguo/madera/mar (fondo de mar
+  profundo con viñeta, tipografía serif, dorado/pergamino). Menú con el emblema + título +
+  subtítulo "BELU AL RESCATE" + botón de latón "⚓ Zarpar". Intro narrada sobre una **nota de
+  pergamino** con sello de cera (patito estampado en SVG). Menos emojis en el chrome.
+- **index.html:** título sin emojis ("Vacaciones en Isla Pato — Belu al Rescate"), `<link rel=icon>`
+  al favicon.svg, y overlay de "click para jugar" a tono (emblema + serif + dorado).
+- Nota: el TEXTO de la intro (`textos.js → intro`) queda como lo dejó el usuario (con sus emojis y
+  su redacción); la baja de emojis se aplicó a la interfaz, no a la narración.
+
+## 2026-07-13 — Más sonidos elegidos (diálogo, teclado, mecanismos, splash, hoguera, bichos, final)
+- Ampliado `core/audio.js` con 10 SFX nuevos (todos sintetizados) + enganches:
+  - **Blips de diálogo** por personaje (`Dialogue.show` → `audio.blip(speaker)`, tono derivado del nombre).
+  - **Teclado de la reja** (`Keypad`): pip por tecla + jingle 'correcto' / buzz 'incorrecto'.
+  - **Reja + puente levadizo** (`World.openGate`/`lowerDrawbridge`): chirrido + traqueteo de cadena
+    (`audio.mechanism()`, una sola vez; el puente con flag `_dbSoundPlayed`).
+  - **Splash** al tocar el agua (`Player`: cruce de `seaLevel` sobre agua abierta, flag `_splashed`
+    rearmado al pisar tierra).
+  - **Hoguera** crepitando por cercanía (`audio.addFire(x,z)` en el campamento de Rosa; rugido de
+    fondo + chasquidos según distancia, en `audio.update(dt, playerPos)`).
+  - **Maullido de Rosa** (`ShipwreckIsland._greetRosa`) y **graznido de Juancho** (`CaboRoca._startQuiz`).
+  - **Final** (`Finale`): **cañonazo** (`_fire`), **Lulu volando** (whoosh+gritito al `knockOut`) y
+    **jaula abriéndose** (`_openCage`).
+- Quedaron SIN hacer (no elegidos): jingle de isla completa, chapoteo en la orilla, viento en las
+  alturas, zumbido del faro, música de fondo, cierre musical de la carta.
+
+## 2026-07-13 — Sonido sintetizado (Web Audio) + playa en el borde del Búnker
+- **`core/audio.js`** (nuevo): motor de sonido SINGLETON, todo **sintetizado con la Web Audio
+  API** (sin archivos, coherente con lo procedural del proyecto). Grafo fuentes → sfxBus/
+  ambientBus → master. Se desbloquea con el primer gesto del usuario (autoplay policy); **M**
+  mutea. Config nueva `SOUND` en `config.js` (volúmenes, cadencia de pasos, frecuencia de gaviotas).
+  - **Ambiente:** oleaje (2 capas de ruido filtrado con LFO lento) + **gaviotas** cada 5–14 s.
+  - **SFX:** pisadas por superficie (pasto/arena/roca, 2 capas c/u), salto, aterrizaje (según
+    superficie), **agarrar item** (arpegio) e **interactuar** (blip). Enganches: `Player`
+    (pasos por distancia recorrida `SOUND.stride`, salto en `_resolveJump`, aterrizaje en
+    `_move`), `PlankField`/`ShipPartsField` (pickup), `InteractionManager` (E → interact),
+    `Game` (init + `audio.update` para las gaviotas).
+  - **World.surfaceAt(x,z)**: clasifica el piso ('sand'/'rock'/'grass') para el timbre del paso.
+  - Pisadas de pasto y salto **rehechas** con capas de ruido (menos "beep", más orgánico).
+- **Playa en el borde de El Búnker:** el anillo de arena ya existía, pero no leía como playa.
+  Fix en `buildIslandMesh` (bunker): la piedra oscura **se funde en arena hacia el borde**;
+  los props oscuros dejan de invadir la arena (scatter rMax 0.86→0.72) y se agregaron
+  **palmeras de orilla** (tinte apagado). Ahora el borde es playa como las otras islas.
+
 ## 2026-07-13 — FINAL de la historia: abordaje del Pato Mareado (cañonazo → llave → liberar a Gian)
 - **`game/Finale.js`** (nuevo): máquina de estados del final. Al abordar (E) el barco pirata: Belu
   camina por la cubierta → **dispara el cañón a Lulu** (E, auto-apuntado; bola + fogonazo/humo) →

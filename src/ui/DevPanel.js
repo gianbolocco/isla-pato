@@ -10,7 +10,7 @@ const ISLANDS = [
   { key: 'pato',      digit: '1', label: '🌴 Isla Pato' },
   { key: 'caboRoca',  digit: '2', label: '🪨 Cabo Roca' },
   { key: 'cala',      digit: '3', label: '🎣 Cala Pescador' },
-  { key: 'bunker',    digit: '4', label: '🔌 El Búnker' },
+  { key: 'bunker',    digit: '4', label: '🔌 Bahía Binaria' },
   { key: 'naufragio', digit: '5', label: '🐾 Cala Naufragio' },
 ];
 

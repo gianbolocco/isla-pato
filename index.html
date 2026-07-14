@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vacaciones en Isla Pato 🏝️🦆</title>
+    <title>Vacaciones en Isla Pato</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <style>
       :root { color-scheme: dark; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,17 +16,17 @@
       #overlay {
         position: fixed; inset: 0; display: grid; place-content: center;
         gap: 12px; text-align: center; cursor: pointer;
-        background: radial-gradient(120% 120% at 50% 30%, rgba(20,26,36,.35), rgba(8,10,14,.85));
-        color: #f5f2ec; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: radial-gradient(120% 120% at 50% 25%, rgba(24,54,62,.45), rgba(6,14,18,.9));
+        color: #f1e4bd; font-family: Georgia, "Times New Roman", serif;
         transition: opacity .25s ease;
       }
       #overlay.hidden { opacity: 0; pointer-events: none; }
-      #overlay h1 { font-size: clamp(28px, 5vw, 52px); font-weight: 800; letter-spacing: .5px; }
-      #overlay p { opacity: .8; font-size: clamp(14px, 2vw, 18px); }
-      #overlay .keys { margin-top: 8px; opacity: .7; font-size: 14px; }
+      #overlay .mark { width: 84px; height: 84px; filter: drop-shadow(0 8px 18px rgba(0,0,0,.5)); }
+      #overlay p { opacity: .85; font-size: clamp(15px, 2vw, 19px); letter-spacing: .5px; }
+      #overlay .keys { margin-top: 8px; opacity: .7; font-size: 13px; color: #cfe0dd; font-family: system-ui, sans-serif; }
       kbd {
         display: inline-block; padding: 2px 8px; margin: 0 2px; border-radius: 6px;
-        background: #ffffff1a; border: 1px solid #ffffff33; font-family: inherit; font-size: 13px;
+        background: #e7c8771a; border: 1px solid #e7c87744; font-family: inherit; font-size: 13px;
       }
 
       /* HUD mínimo */
@@ -44,8 +45,8 @@
     <!-- Pantalla de "click para jugar" (captura el mouse). Arranca oculta: primero va el
          menú + intro (src/ui/StartScreen.js); esto reaparece al soltar el mouse con Esc. -->
     <div id="overlay" class="hidden">
-      <h1>🏝️🦆</h1>
-      <p>Click para jugar</p>
+      <img class="mark" src="/favicon.svg" alt="Isla Pato" />
+      <p>Click para volver a la aventura</p>
       <p class="keys">
         <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> moverse ·
         <kbd>Espacio</kbd> saltar · <kbd>Shift</kbd> correr · <kbd>Mouse</kbd> mirar ·

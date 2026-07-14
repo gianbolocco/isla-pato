@@ -5,6 +5,8 @@
 // Un interactuable es: { pos():{x,z}, radius, prompt():string, enabled():bool, onInteract() }.
 // Se registra con add(...). No dispara nada mientras haya una UI abierta (ui.active()).
 
+import { audio } from '../core/audio.js';
+
 export class InteractionManager {
   constructor(player, input, prompt, ui) {
     this.player = player;
@@ -41,7 +43,7 @@ export class InteractionManager {
 
     if (best) {
       this.prompt.show(best.prompt());
-      if (eEdge) best.onInteract();
+      if (eEdge) { audio.interact(); best.onInteract(); }
     } else {
       this.prompt.hide();
     }

@@ -1,0 +1,58 @@
+// Emblema/logo del juego: un roundel náutico (anillo de soga dorada → mar con sol →
+// rosa de los vientos tenue → un patito con sombrero pirata sobre las olas). Vector puro
+// (SVG), así queda nítido a cualquier tamaño y sin assets externos (coherente con lo
+// procedural del proyecto). Se usa grande en la intro y chico como favicon (public/favicon.svg
+// tiene el mismo dibujo — si retocás uno, actualizá el otro).
+export const LOGO_SVG = `
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Isla Pato">
+  <defs>
+    <clipPath id="ip-sea"><circle cx="64" cy="64" r="52"/></clipPath>
+    <linearGradient id="ip-seaG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f7180"/><stop offset="1" stop-color="#123038"/>
+    </linearGradient>
+    <linearGradient id="ip-skyG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e6b8"/><stop offset="1" stop-color="#eab873"/>
+    </linearGradient>
+    <linearGradient id="ip-ringG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7c877"/><stop offset="1" stop-color="#a97f2e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Anillo de soga dorada -->
+  <circle cx="64" cy="64" r="61" fill="#0e262d"/>
+  <circle cx="64" cy="64" r="57" fill="none" stroke="url(#ip-ringG)" stroke-width="6"/>
+  <circle cx="64" cy="64" r="57" fill="none" stroke="#6e5320" stroke-width="6"
+          stroke-dasharray="3 7" stroke-linecap="round" opacity="0.55"/>
+
+  <g clip-path="url(#ip-sea)">
+    <!-- Mar + cielo del atardecer + sol -->
+    <rect x="0" y="0" width="128" height="128" fill="url(#ip-seaG)"/>
+    <rect x="0" y="0" width="128" height="44" fill="url(#ip-skyG)"/>
+    <circle cx="64" cy="37" r="15" fill="#ffe9a8" opacity="0.75"/>
+
+    <!-- Rosa de los vientos tenue -->
+    <g fill="#ffffff" opacity="0.10">
+      <polygon points="64,8 69,60 64,64 59,60"/>
+      <polygon points="120,64 68,69 64,64 68,59"/>
+      <polygon points="64,120 59,68 64,64 69,68"/>
+      <polygon points="8,64 60,59 64,64 60,69"/>
+    </g>
+
+    <!-- Olas de abajo -->
+    <path d="M0,90 q16,-8 32,0 t32,0 t32,0 t32,0 V128 H0 Z" fill="#1c4a55"/>
+    <path d="M0,103 q16,-8 32,0 t32,0 t32,0 t32,0 V128 H0 Z" fill="#0f2f38"/>
+
+    <!-- Patito capitán -->
+    <g stroke="#0e2f36" stroke-width="1.4">
+      <path d="M34,74 l-9,-5 l4,11 z" fill="#e6a92e"/>
+      <ellipse cx="58" cy="76" rx="24" ry="16" fill="#f4c948"/>
+      <path d="M44,73 q14,-7 27,1 q-11,10 -27,-1 z" fill="#e6a92e" stroke="none"/>
+      <circle cx="80" cy="57" r="13" fill="#f4c948"/>
+      <path d="M92,55 l14,4 l-14,4 z" fill="#e8863a"/>
+      <circle cx="84" cy="53" r="2.2" fill="#14232a" stroke="none"/>
+    </g>
+    <!-- Sombrero pirata (tricornio) con calavera -->
+    <path d="M66,47 q14,-13 28,0 q-6,-4.5 -14,-4.5 q-8,0 -14,4.5 z" fill="#20232a"/>
+    <circle cx="80" cy="43.5" r="2.6" fill="#ecdfc2"/>
+  </g>
+</svg>`.trim();

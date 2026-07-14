@@ -2,6 +2,8 @@
 // onSubmit(valor) debe devolver true si la clave es correcta (ahí se cierra); si es
 // falsa, sacude y limpia. No maneja pointer-lock: lo coordina quien lo abre.
 
+import { audio } from '../core/audio.js';
+
 export class Keypad {
   constructor(container) {
     this.el = document.createElement('div');
@@ -71,13 +73,15 @@ export class Keypad {
 
   _refresh() { this.display.textContent = this._value || '—'; }
 
-  _press(d) { if (this._value.length < 8) { this._value += d; this._refresh(); } }
+  _press(d) { if (this._value.length < 8) { this._value += d; this._refresh(); audio.keypadPress(); } }
   _clear() { this._value = ''; this._refresh(); }
 
   _enter() {
     if (this._onSubmit && this._onSubmit(this._value)) {
+      audio.keypadOk();
       this.hide();
     } else {
+      audio.keypadFail();
       // Clave incorrecta: parpadeo rojo + limpiar.
       this.display.style.color = '#ff6a6a';
       this.display.textContent = '✖ ✖ ✖ ✖';

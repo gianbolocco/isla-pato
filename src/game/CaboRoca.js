@@ -1,6 +1,7 @@
 import { makeParrot } from '../objects/Parrot.js';
 import { QUIZ } from '../config.js';
 import { TEXTOS } from '../textos.js';
+import { audio } from '../core/audio.js';
 
 // Misión de Cabo Roca (isla 2): Juancho (loro) hace 3 preguntas sobre Gian y da la
 // clave; con la clave, en la reja se abre el teclado y se abre el paso. La cercanía y
@@ -57,6 +58,7 @@ export class CaboRoca {
   }
 
   _startQuiz() {
+    audio.squawk();
     this.ui.open();
     const J = TEXTOS.juancho;
     this.dialogue.show(J.nombre, J.saludo.replaceAll('{nombre}', J.nombre),

@@ -12,6 +12,7 @@ import { loadProps } from '../world/Props.js';
 import { Story } from '../game/Story.js';
 import { SailCutscene } from '../game/SailCutscene.js';
 import { Finale } from '../game/Finale.js';
+import { audio } from './audio.js';
 
 // Orquesta escena, renderer, camara en 3ra persona, input y el loop principal.
 export class Game {
@@ -49,6 +50,9 @@ export class Game {
       const grad = makeToonGradient(RENDER.toonSteps);
       toonify(this.player.mesh, grad);
     }
+
+    // --- Sonido (ambiente + SFX sintetizados). Se desbloquea con el primer gesto del usuario. ---
+    audio.init();
 
     // --- Input (antes de la historia, que lo usa para interactuar con la tecla E) ---
     this.input = new Input(this.renderer.domElement);
@@ -128,6 +132,7 @@ export class Game {
     if (this.finale && this.finale.active) this.finale.update(dt);
     this.world.update(dt);
     this.story.update(dt);
+    audio.update(dt, this.player.position);   // ambiente: gaviotas + crepitar de la hoguera
 
     this.composer.render();
   }

@@ -61,7 +61,7 @@ export const PLANK_PICKUP_RADIUS = 2.2;
 // sobre Gian antes de darla. PLACEHOLDERS obvios — editá q/options/correct y `code`.
 // Gameplay del loro Juancho (Cabo Roca). Los textos/preguntas están en textos.js → juancho.
 export const QUIZ = {
-  code: '1234',                 // 🔢 CLAVE (número). Cambiala por una con significado.
+  code: '8108',                 // 🔢 CLAVE (número). Cambiala por una con significado.
   parrotPos: { x: 130, z: 46 }, // rincón NORTE escondido de Cabo Roca (isla grande, cz=22)
   talkRadius: 3.2,
   gateRadius: 4.5,
@@ -77,11 +77,35 @@ export const DAD = {
   talkRadius: 3.6,
 };
 
+// Mamá de Belu (Cala del Pescador): NPC de COMEDIA opcional junto al campamento (bajo la
+// sombrilla, quejándose de que no hay shoppings). No traba la misión. Textos en textos.js → mama.
+export const MAMA = {
+  name: TEXTOS.mama.nombre,
+  lines: TEXTOS.mama.lineas,
+  pos: { x: 231, z: 16 },   // al lado de Alejandro, un poco más adentro (bajo la sombrilla)
+  talkRadius: 3.4,
+};
+
 // Props decorativos (.glb gratis, ej. Poly Pizza / Kenney / Quaternius) que se
 // apoyan sobre el suelo. Archivos en public/models/props/. Se llenan a medida que
 // bajemos assets. Ejemplo:
 //   { model: '/models/props/heart.glb', x: 3, z: 5, scale: 0.6, y: 0, rotY: 0 }
 export const PROPS = [];
+
+// 🔊 Sonido: TODO se sintetiza con la Web Audio API (sin archivos, self-contained como el
+// resto del juego). Ambiente (oleaje + gaviotas) + SFX (pisadas por superficie, salto,
+// aterrizaje, agarrar item, interactuar). Tunear volúmenes/cadencia acá. `M` mutea en juego.
+export const SOUND = {
+  enabled: true,
+  master: 0.9,        // volumen general (0..1)
+  ambient: 0.55,      // mezcla del ambiente (oleaje + gaviotas)
+  sfx: 0.85,          // mezcla de los efectos
+  waves: 0.6,         // intensidad del oleaje dentro del ambiente
+  gullMin: 5.0,       // segundos mínimos entre graznidos de gaviota
+  gullMax: 14.0,      // segundos máximos entre graznidos
+  stride: 1.9,        // metros por pisada (cadencia; menos = pasos más seguidos)
+  footstep: 0.4,      // volumen de las pisadas
+};
 
 export const CAMERA = {
   distance: 6.5,

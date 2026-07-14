@@ -5,6 +5,7 @@ import { buildCage } from '../world/props/cage.js';
 import { makeCannon } from '../world/props/cannon.js';
 import { playLines } from './conversation.js';
 import { TEXTOS } from '../textos.js';
+import { audio } from '../core/audio.js';
 
 // Final de la historia (abordaje del Pato Mareado). Máquina de estados: Belu camina por la
 // cubierta → dispara el cañón a Lulu (E) → Lulu sale volando y suelta la llave → agarrar la
@@ -132,6 +133,7 @@ export class Finale {
     this.ball.position.copy(this._ballStart);
     this.scene.add(this.ball);
     this._puff(this._ballStart, 0xffcf7a, 1.2);   // fogonazo
+    audio.cannon();
   }
 
   _updateBall(dt) {
@@ -144,6 +146,7 @@ export class Finale {
       this.scene.remove(this.ball); this.ball = null;
       this._puff(to, 0xdddddd, 2.0);
       this.lulu.knockOut();
+      audio.luluFly();
       // La llave cae donde estaba Lulu (sobre la cubierta).
       this.key.position.set(this.luluPos.x, this.deckY + 0.55, this.luluPos.z);
       this._keyBaseY = this.deckY + 0.55;
@@ -170,6 +173,7 @@ export class Finale {
   // ---- Jaula ----
   _openCage() {
     this.cage.open();
+    audio.cageOpen();
     this.state = 'opening';
     this.hud.set('');
     this._gianMoving = true;
@@ -217,15 +221,31 @@ export class Finale {
     cam.position.set(m.x - 0.4 + Math.sin(t * 0.3) * 0.7, this.deckY + 4.0, m.z + 4.5 + Math.sin(t * 0.2) * 0.5);
     cam.lookAt(m.x, this.deckY + 1.0, m.z);
 
+    // El/los mensaje(s) de Gian salen en el diálogo (con botón). El card final NO aparece
+    // solo: recién sale al apretar "Continuar" en el último mensaje.
     if (this._reuT > 1.2 && !this._msgShown) {
       this._msgShown = true;
-      this.messageBox.show('Gian 🦆', TEXTOS.gianRescate);
+      this._showGianLines();
     }
-    if (this._reuT > 6.5 && this.state !== 'end') {
-      this.state = 'end';
-      this.messageBox.hide();
-      this._showCard();
-    }
+  }
+
+  // Muestra el/los mensaje(s) de Gian con "Continuar"; al terminar, el card final.
+  _showGianLines() {
+    const raw = TEXTOS.gianRescate;
+    const lines = Array.isArray(raw) ? raw : [raw];   // acepta un string o una lista de líneas
+    let i = 0;
+    const step = () => {
+      if (i >= lines.length) { this._toCard(); return; }
+      this.dialogue.show('Gian 🦆', lines[i++], [{ label: 'Continuar ▸', onClick: step }]);
+    };
+    step();
+  }
+
+  _toCard() {
+    if (this.state === 'end') return;
+    this.state = 'end';
+    this.dialogue.hide();
+    this._showCard();
   }
 
   // ---- Llave (mesh) ----

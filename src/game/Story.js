@@ -92,7 +92,7 @@ export class Story {
     const dist = (x, z) => Math.hypot(this.player.position.x - x, this.player.position.z - z);
     return [
       {
-        objective: 'Busca alguna señal de Gianlucca… (apretá E en la botella 🍾)',
+        objective: 'Busca alguna señal de Gian...',
         update: () => {
           const near = dist(this.bottle.position.x, this.bottle.position.z) < INTRO.readRadius;
           if (!near) this.messageBox.hide();
@@ -100,7 +100,7 @@ export class Story {
         },
       },
       {
-        objective: 'El puente al este está roto — andá a verlo',
+        objective: 'Anda a ver el puente roto',
         update: () => { const b = this.world.bridgeStart; return !!b && dist(b.x, b.z) < 8; },
         onDone: () => this.plankField.spawn(),
       },
@@ -109,7 +109,7 @@ export class Story {
         update: (dt) => { this.plankField.update(dt, this.player.position); return this.plankField.allCollected; },
       },
       {
-        objective: 'Volvé al puente roto y apretá E para arreglarlo 🔨',
+        objective: 'Volvé al puente roto para arreglarlo 🔨',
         update: () => this.world.bridgeRepaired,
       },
       {
@@ -133,11 +133,11 @@ export class Story {
         update: () => this.fishingIsland.talked,
       },
       {
-        objective: 'El puente está destruido — cruzá el parkour saltando 🧗',
+        objective: 'El puente está destruidol, cruzá el parkour saltando 🧗',
         update: () => this.player.position.x > 332,
       },
       {
-        objective: 'Buscá la botella en la orilla del Búnker y apretá E 🍾',
+        objective: 'Explora Bahía Binaria…',
         update: () => {
           const near = dist(this.bunkerBottle.position.x, this.bunkerBottle.position.z) < BUNKER.readRadius;
           if (!near) this.messageBox.hide();
@@ -157,7 +157,7 @@ export class Story {
         update: () => this.player.position.x > (this.world.naufragio?.arrival.x ?? 414),
       },
       {
-        objective: 'Seguí el maullido y saludá a quien te encontró (E) 🐱',
+        objective: 'Explora Cala del Naufragio 🐾',
         update: () => this.shipwreck.talked,
       },
       {
@@ -169,11 +169,11 @@ export class Story {
         update: () => this.shipwreck.launched,
       },
       {
-        objective: '¡Barco a flote! Embarcá para ir a El Pato Mareado ⚓',
+        objective: '¡Barco a flote! Embarcá para ir al barco pirata ⚓',
         update: () => this.shipwreck.aboard,
       },
       {
-        objective: '¡Llegaste a El Pato Mareado! Abordá con E y rescatá a tu pato 🏴‍☠️',
+        objective: '¡Llegaste! Abordá con E y rescatá a tu pato 🏴‍☠️',
         update: () => false,
       },
     ];

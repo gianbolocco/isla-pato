@@ -48,10 +48,19 @@ export function buildGate(x, z) {
   // el hueco). El collider es una caja limpia por muro.
   const wallLen = 20, wallH = 7, wallT = 2.4;
   const moss = new THREE.MeshStandardMaterial({ color: 0x6cab52, roughness: 1, flatShading: true });
+  // Piedra "mojada" más oscura para el cimiento que baja al agua.
+  const wet = new THREE.MeshStandardMaterial({ color: 0x565d63, roughness: 1, flatShading: true });
   const courses = 6, courseH = wallH / courses;
   const wallColliders = [];
   for (const s of [-1, 1]) {
     const zStart = z + s * (W / 2 + 0.3);           // arranca pasado el pilar
+    // Cimiento: un bloque macizo que baja bien por debajo del agua. Sobre la playa queda
+    // enterrado (no se ve); donde la orilla cae al mar, rellena el hueco para que el muro
+    // NO parezca flotar sobre el agua.
+    const found = new THREE.Mesh(new THREE.BoxGeometry(wallT * 0.98, 5, wallLen), wet);
+    found.position.set(x, -2.0, zStart + s * (wallLen / 2));   // top ≈ +0.5, base ≈ −4.5
+    found.receiveShadow = true;
+    group.add(found);
     for (let c = 0; c < courses; c++) {
       const yy = courseH * (c + 0.5);
       const t = wallT * (1 - c * 0.05);             // se afina hacia arriba (talud)

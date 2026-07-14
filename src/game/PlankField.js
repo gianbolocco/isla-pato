@@ -1,5 +1,6 @@
 import { makePlank } from '../objects/Plank.js';
 import { PLANKS, PLANK_PICKUP_RADIUS } from '../config.js';
+import { audio } from '../core/audio.js';
 
 // Los tablones escondidos de Isla Pato. La historia decide CUÁNDO aparecen (spawn),
 // para no activarlos antes de tiempo. Expone `collected`, `total` y `allCollected`.
@@ -37,6 +38,7 @@ export class PlankField {
         p.taken = true;
         this.scene.remove(p.mesh);
         this.collected++;
+        audio.pickup();
         if (this.collected >= this.total) this.allCollected = true;
       }
     }

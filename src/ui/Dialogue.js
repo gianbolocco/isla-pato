@@ -3,6 +3,8 @@
 // Rosa, Gian, Lulu y demás NPC. No maneja el pointer-lock: eso lo coordina quien
 // lo abre (ver game/CaboRoca.js con el `ui` controller de Game).
 
+import { audio } from '../core/audio.js';
+
 export class Dialogue {
   constructor(container) {
     this.el = document.createElement('div');
@@ -33,6 +35,7 @@ export class Dialogue {
 
   // options: [{ label, onClick }]. Si se omite, muestra un botón "Continuar".
   show(speaker, html, options) {
+    audio.blip(speaker);   // pip de "voz" (tono según el personaje)
     this.speaker.textContent = speaker;
     this.text.innerHTML = html;
     this.options.innerHTML = '';
