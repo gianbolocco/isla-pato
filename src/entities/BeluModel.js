@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mat, walkAnimation } from './chibi.js';
 
 // Modelo 3D chibi de Belu, construido con primitivas segun personajes/modeloBelu.png:
 // cabeza grande, pelo rubio ondulado, top negro, pantalon crema ancho, aretes de perla.
@@ -18,10 +19,6 @@ const COLORS = {
   shoe:   0xefe7d6,
   pearl:  0xffffff,
 };
-
-function mat(color, opts = {}) {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0, ...opts });
-}
 
 export class BeluModel {
   constructor() {
@@ -78,7 +75,8 @@ export class BeluModel {
 
     // ---- Cabeza (grande, estilo chibi) ----
     this.head = new THREE.Group();
-    this.head.position.y = 1.62;
+    this.headBaseY = 1.62;
+    this.head.position.y = this.headBaseY;
     this.object3d.add(this.head);
 
     const skull = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 20), M.skin);
@@ -265,18 +263,5 @@ export class BeluModel {
   }
 
   // dt: delta time; speed01: rapidez de movimiento normalizada (0 quieto, 1 corriendo).
-  update(dt, speed01) {
-    // Balanceo de piernas/brazos al caminar.
-    this.walkPhase += dt * (4 + speed01 * 8);
-    const swing = Math.sin(this.walkPhase) * 0.5 * speed01;
-
-    this.legL.rotation.x = swing;
-    this.legR.rotation.x = -swing;
-    this.armL.rotation.x = -swing * 0.8;
-    this.armR.rotation.x = swing * 0.8;
-
-    // Idle-bob suave de la cabeza cuando esta quieta.
-    const bob = Math.sin(performance.now() * 0.003) * 0.02 * (1 - speed01);
-    this.head.position.y = 1.62 + bob;
-  }
+  update(dt, speed01) { walkAnimation(this, dt, speed01); }
 }

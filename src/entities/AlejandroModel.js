@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mat } from './chibi.js';
 
 // Modelo 3D chibi de Alejandro (el papá de Belu), según la foto: pelo corto entrecano
 // con entradas, barba corta gris, chaleco inflable azul marino sobre buzo gris con
@@ -15,10 +16,6 @@ const C = {
   pants: 0x3a3d44, shoe: 0x413d37,
   rod: 0x6e4b2a, reel: 0x2a2a2e, line: 0xf0f0f0,
 };
-
-function mat(color, opts = {}) {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0, ...opts });
-}
 
 export class AlejandroModel {
   constructor() {

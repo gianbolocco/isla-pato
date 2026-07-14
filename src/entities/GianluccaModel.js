@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mat, walkAnimation } from './chibi.js';
 
 // Modelo 3D chibi de Gianlucca (el novio de Belu), en el MISMO estilo tierno que
 // BeluModel, segun las fotos de img/: pelo oscuro casi negro con costados cortos y
@@ -12,8 +13,8 @@ import * as THREE from 'three';
 const COLORS = {
   skin:   0xecc09a,   // piel calida, apenas mas tostada que Belu
   skinSh: 0xd8a279,   // sombra de piel (mejillas/barba base)
-  hair:   0x241f1c,   // castano muy oscuro, casi negro
-  hairHi: 0x3a322c,   // reflejo del pelo
+  hair:   0x342a22,   // castano oscuro (no negro puro: así el toon muestra la forma)
+  hairHi: 0x6b5a48,   // reflejo del pelo (bien más claro, para que se lea la textura)
   brow:   0x1d1815,   // cejas gruesas oscuras
   eye:    0x3b2416,   // marron
   stubble:0xb69072,   // barba de pocos dias (tono apagado)
@@ -24,10 +25,6 @@ const COLORS = {
   shoe:   0xe9e9ec,   // zapatillas claras
   sole:   0x2a2a2e,
 };
-
-function mat(color, opts = {}) {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0, ...opts });
-}
 
 export class GianluccaModel {
   constructor() {
@@ -48,16 +45,17 @@ export class GianluccaModel {
       hairHi: mat(COLORS.hairHi, { roughness: 0.55 }),
       brow: mat(COLORS.brow, { roughness: 0.6 }),
       eye: mat(COLORS.eye, { roughness: 0.4 }),
-      stubble: mat(COLORS.stubble, { roughness: 1, transparent: true, opacity: 0.5 }),
+      stubble: mat(COLORS.stubble, { roughness: 1, transparent: true, opacity: 0.55 }),
       cheek: mat(COLORS.cheek, { roughness: 1 }),
       shirt: mat(COLORS.shirt, { roughness: 0.8 }),
       shirtSh: mat(COLORS.shirtSh, { roughness: 0.8 }),
       pants: mat(COLORS.pants, { roughness: 0.9 }),
       shoe: mat(COLORS.shoe, { roughness: 0.7 }),
       sole: mat(COLORS.sole, { roughness: 0.9 }),
-      pearl: mat(0xffffff, { roughness: 0.2 }),
       white: mat(0xffffff, { roughness: 0.25 }),   // blanco del ojo
       pupil: mat(0x140d08, { roughness: 0.35 }),    // pupila
+      beadDark: mat(0x2a211b, { roughness: 0.5 }),  // cuentas de madera oscura (collar)
+      beadTan: mat(0xb5863f, { roughness: 0.4, metalness: 0.1 }),  // cuenta clara (ojo de tigre)
     };
     this._mats = M;
 
@@ -95,7 +93,8 @@ export class GianluccaModel {
 
     // ---- Cabeza ----
     this.head = new THREE.Group();
-    this.head.position.y = 1.64;
+    this.headBaseY = 1.64;
+    this.head.position.y = this.headBaseY;
     this.object3d.add(this.head);
 
     const skull = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 20), M.skin);
@@ -110,6 +109,7 @@ export class GianluccaModel {
 
     this._buildHair(M);
     this._buildFace(M);
+    this._buildNecklace(M);
 
     this.object3d.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   }
@@ -159,33 +159,47 @@ export class GianluccaModel {
   }
 
   _buildHair(M) {
-    // Costados cortos: una capa fina y oscura pegada al craneo (fade), sin bajar
-    // tanto como el pelo largo de Belu.
-    const sides = new THREE.Mesh(new THREE.SphereGeometry(0.44, 24, 20), M.hair);
-    sides.scale.set(1.04, 0.9, 1.02);
-    sides.position.set(0, 0.12, -0.03);
-    this.head.add(sides);
+    // Pelo LACIO usado un poco despeinado: una capa suave y lisa (SIN bultos ni mechones que
+    // sobresalgan), con la frente despejada y un flequillo barrido a un costado. La leve
+    // asimetría de las capas da el "despeinado" sin romper que sea lacio.
 
-    // Tapa el craneo por arriba/atras (deja la cara y las orejas despejadas).
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.45, 24, 20), M.hair);
-    cap.scale.set(1.02, 1.0, 1.04);
-    cap.position.set(0, 0.2, -0.06);
+    // Capa principal (bulk): lisa y aplastada, apoyada arriba/atrás.
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.45, 28, 22), M.hair);
+    cap.scale.set(1.02, 0.84, 1.05);
+    cap.position.set(0, 0.24, -0.08);
     this.head.add(cap);
+    // Segunda capa apenas corrida a un lado: rompe el casco perfecto (despeinado sutil).
+    const cap2 = new THREE.Mesh(new THREE.SphereGeometry(0.43, 28, 22), M.hair);
+    cap2.scale.set(1.0, 0.74, 1.02);
+    cap2.position.set(0.06, 0.3, -0.05);
+    this.head.add(cap2);
 
-    // Volumen texturizado arriba (mechones despeinados hacia arriba/adelante = quiff).
-    for (let i = 0; i < 6; i++) {
-      const a = (i - 2.5) * 0.34;
-      const lump = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), i % 2 ? M.hair : M.hairHi);
-      lump.position.set(Math.sin(a) * 0.28, 0.4 - Math.abs(a) * 0.03, 0.04 + Math.cos(a) * 0.05);
-      lump.scale.set(0.9, 1.05, 1);
-      this.head.add(lump);
+    // Nuca corta atrás (fade).
+    const nape = new THREE.Mesh(new THREE.SphereGeometry(0.4, 20, 16), M.hair);
+    nape.scale.set(0.98, 0.6, 0.72);
+    nape.position.set(0, 0.06, -0.2);
+    this.head.add(nape);
+
+    // Flequillo lacio que cae al frente y BARRE hacia un costado (deja ver la frente).
+    const fringe = new THREE.Mesh(new THREE.SphereGeometry(0.34, 22, 16), M.hair);
+    fringe.scale.set(0.95, 0.32, 0.5);
+    fringe.position.set(0.06, 0.34, 0.2);
+    fringe.rotation.set(0.5, 0.0, -0.18);
+    this.head.add(fringe);
+    // Sheen/raya del pelo lacio (mechón claro y PLANO barrido al costado; no sobresale).
+    const sweep = new THREE.Mesh(new THREE.SphereGeometry(0.28, 18, 12), M.hairHi);
+    sweep.scale.set(0.85, 0.2, 0.55);
+    sweep.position.set(0.14, 0.42, 0.08);
+    sweep.rotation.set(0.2, 0.0, -0.42);
+    this.head.add(sweep);
+
+    // Costados altos (fade): se ven las sienes, no baja como bowl.
+    for (const s of [-1, 1]) {
+      const side = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 10), M.hair);
+      side.scale.set(0.45, 0.85, 0.85);
+      side.position.set(s * 0.38, 0.2, -0.03);
+      this.head.add(side);
     }
-    // Copete al frente, levantado.
-    const quiff = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), M.hairHi);
-    quiff.scale.set(1.1, 0.7, 0.7);
-    quiff.position.set(0, 0.42, 0.24);
-    quiff.rotation.x = -0.5;
-    this.head.add(quiff);
   }
 
   _buildFace(M) {
@@ -226,14 +240,14 @@ export class GianluccaModel {
       lid.position.set(EX, EY + 0.09, EZ + 0.005);
       this.head.add(lid);
 
-      // CEJA GRUESA (su sello): mas grande, oscura, poblada, angulada.
-      const brow = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.12, 5, 10), M.brow);
-      brow.rotation.z = Math.PI / 2 + side * 0.16;
-      brow.position.set(EX, EY + 0.19, EZ + 0.03);
+      // Ceja poblada (su sello) pero más prolija: capsula algo más fina y angulada.
+      const brow = new THREE.Mesh(new THREE.CapsuleGeometry(0.021, 0.12, 5, 10), M.brow);
+      brow.rotation.z = Math.PI / 2 + side * 0.18;
+      brow.position.set(EX, EY + 0.17, EZ + 0.03);
       this.head.add(brow);
-      const browIn = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 8), M.brow);
-      browIn.scale.set(1, 0.8, 0.4);
-      browIn.position.set(side * 0.085, EY + 0.17, EZ + 0.03);
+      const browIn = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), M.brow);
+      browIn.scale.set(1, 0.75, 0.4);
+      browIn.position.set(side * 0.075, EY + 0.155, EZ + 0.03);
       this.head.add(browIn);
 
       // Sombra de la mejilla (barba de pocos dias, lateral).
@@ -241,7 +255,19 @@ export class GianluccaModel {
       beard.scale.set(0.55, 0.7, 0.22);
       beard.position.set(side * 0.26, -0.2, 0.24);
       this.head.add(beard);
+
+      // Patilla: baja desde el pelo por delante de la oreja hasta la barba.
+      const sideburn = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.12, 4, 8), M.stubble);
+      sideburn.position.set(side * 0.4, -0.04, 0.05);
+      this.head.add(sideburn);
     }
+
+    // Sombra de barba en la MANDIBULA: une las mejillas con el menton (barba de pocos dias
+    // más marcada, como en la foto). Casquete fino que envuelve el contorno inferior.
+    const jawBeard = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 16), M.stubble);
+    jawBeard.scale.set(0.94, 0.52, 0.55);
+    jawBeard.position.set(0, -0.26, 0.16);
+    this.head.add(jawBeard);
 
     // Nariz un poco mas grande.
     const nose = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), M.skin);
@@ -266,18 +292,27 @@ export class GianluccaModel {
     this.head.add(smile);
   }
 
-  // dt: delta time; speed01: rapidez normalizada (0 quieto, 1 corriendo).
-  update(dt, speed01) {
-    this.walkPhase += dt * (4 + speed01 * 8);
-    const swing = Math.sin(this.walkPhase) * 0.5 * speed01;
-
-    this.legL.rotation.x = swing;
-    this.legR.rotation.x = -swing;
-    this.armL.rotation.x = -swing * 0.8;
-    this.armR.rotation.x = swing * 0.8;
-
-    // Idle-bob suave cuando esta quieto.
-    const bob = Math.sin(performance.now() * 0.003) * 0.02 * (1 - speed01);
-    this.head.position.y = 1.64 + bob;
+  _buildNecklace(M) {
+    // Collar de cuentas de madera oscuras con UNA cuenta clara (ojo de tigre) al frente,
+    // como en la foto. Cuelga de la base del cuello y cae un poco al frente. Va en el cuerpo
+    // (no en la cabeza), así no se mueve con el idle-bob.
+    const g = new THREE.Group();
+    g.position.set(0, 1.24, 0.04);   // base del cuello / clavícula
+    const N = 16;
+    for (let k = 0; k < N; k++) {
+      const a = (k / N) * Math.PI * 2;
+      const front = Math.max(0, Math.cos(a));           // 1 al frente (+Z), 0 a los costados/atrás
+      const x = Math.sin(a) * 0.17;
+      const z = Math.cos(a) * 0.15 + 0.06;
+      const y = -0.02 - Math.pow(front, 1.4) * 0.14;    // cae hacia el frente-centro
+      const bead = new THREE.Mesh(
+        new THREE.SphereGeometry(0.03, 10, 8), k === 0 ? M.beadTan : M.beadDark);  // k=0 = cuenta clara al frente
+      bead.position.set(x, y, z);
+      g.add(bead);
+    }
+    this.object3d.add(g);
   }
+
+  // dt: delta time; speed01: rapidez normalizada (0 quieto, 1 corriendo).
+  update(dt, speed01) { walkAnimation(this, dt, speed01); }
 }

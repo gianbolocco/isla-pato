@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mat, walkAnimation } from './chibi.js';
 
 // Modelo 3D chibi de la MAMÁ de Belu (Cala del Pescador). Es "Belu pero adulta": mismo
 // pelo rubio ondulado y la misma carita tierna, con un look de turista — vestido de verano,
@@ -23,10 +24,6 @@ const COLORS = {
   bagHw:  0xf0d27a,   // herrajes dorados
   pearl:  0xffffff,
 };
-
-function mat(color, opts = {}) {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0, ...opts });
-}
 
 export class MamaModel {
   constructor() {
@@ -99,7 +96,8 @@ export class MamaModel {
 
     // ---- Cabeza ----
     this.head = new THREE.Group();
-    this.head.position.y = 1.6;
+    this.headBaseY = 1.6;
+    this.head.position.y = this.headBaseY;
     this.object3d.add(this.head);
 
     const skull = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 20), M.skin);
@@ -268,15 +266,5 @@ export class MamaModel {
     this.head.add(g);
   }
 
-  update(dt, speed01 = 0) {
-    this.walkPhase += dt * (4 + speed01 * 8);
-    const swing = Math.sin(this.walkPhase) * 0.5 * speed01;
-    this.legL.rotation.x = swing;
-    this.legR.rotation.x = -swing;
-    this.armL.rotation.x = -swing * 0.8;
-    this.armR.rotation.x = swing * 0.8;
-
-    const bob = Math.sin(performance.now() * 0.003) * 0.02 * (1 - speed01);
-    this.head.position.y = 1.6 + bob;
-  }
+  update(dt, speed01 = 0) { walkAnimation(this, dt, speed01); }
 }

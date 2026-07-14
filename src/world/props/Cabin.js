@@ -69,6 +69,12 @@ export function buildCabin(cx = 0, cz = -8) {
     const tri = [cx - W / 2, H, zf,  cx + W / 2, H, zf,  cx, H + peak, zf];
     group.add(meshFrom(tri, 0xb07a45, { flat: true }));
   }
+  // Collider "techo" (invisible): cierra la caja por arriba. La malla del techo es a dos
+  // aguas y no tenía colisión, así que estando ADENTRO la cámara se colaba por encima de las
+  // paredes y atravesaba el techo. Con esta tapa plana a la altura del alero, la cámara (y el
+  // salto) quedan contenidos dentro de la cabaña.
+  colliders.push(new THREE.Box3().setFromCenterAndSize(
+    new THREE.Vector3(cx, H + 0.2, cz), new THREE.Vector3(W, 0.4, D)));
 
   // Puerta ABIERTA (batiente girado en la bisagra del lado izquierdo del hueco).
   const doorPivot = new THREE.Group();

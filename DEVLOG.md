@@ -2,6 +2,17 @@
 
 Registro cronológico de avances y decisiones. Lo más nuevo arriba.
 
+## 2026-07-14 — Gian más realista + limpieza de modelos (DRY)
+- **Modelo de Gian** (`GianluccaModel`) reelaborado según foto: pelo LACIO usado despeinado
+  (capa lisa + flequillo barrido, sin bultos), frente despejada, cejas más prolijas, barba de
+  pocos días (patillas + mandíbula) y **collar de cuentas** de madera con una cuenta clara.
+- **Refactor DRY de los personajes** (`entities/chibi.js` nuevo): se centralizó el helper
+  `mat()` (estaba duplicado en los 6 modelos) y la **animación de caminado** `walkAnimation()`
+  (idéntica en Belu/Gian/Mamá). Belu/Gian/Mamá/Alejandro usan el `mat` compartido; Belu/Gian/
+  Mamá usan `walkAnimation` (exponen `headBaseY`). Rosa y Lulu quedan con lo suyo (otra
+  "sensación" de material y animaciones propias). Se quitó el material `pearl` muerto de Gian.
+  Sin cambios de comportamiento (build OK).
+
 ## 2026-07-13 — Cala del Pescador: conector + la mamá de Belu (NPC de comedia)
 - **Conector:** antes Alejandro (el papá) aparecía de la nada. Ahora sus líneas (`textos.js →
   alejandro`) explican que la familia andaba **paseando en la lancha por las islas y el Capitán
